@@ -20,7 +20,7 @@ Stock OS Modification is a project built on the StockOS of Anbernic, which is en
 
 ## Important tips
 1. When using balenaEtcher flash TF under MacOS system, automatic partitioning will fail. It is recommended to use rufus flash TF under windows.
-   Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/issues/68
+   - Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/issues/68
 3. The 64-bit system is a new version that supports more ports games
 
 ## For more information, please visit
