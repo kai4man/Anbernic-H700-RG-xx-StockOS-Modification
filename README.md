@@ -1,4 +1,4 @@
-# Anbernic H700 RG28xx* &amp; RG35xx* &amp; RG40xx* Stock OS Modification
+# Anbernic H700 RG28xx* &amp; RG34xx &amp; RG35xx* &amp; RG40xx* &amp; RGcubeXX Stock OS Modification
 
 Stock OS Modification is a project built on the StockOS of Anbernic, which is enhanced through modifications to achieve a better user experience.
 
