@@ -1,5 +1,4 @@
 import struct
-import time
 
 code = 0
 codeName = ""

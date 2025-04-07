@@ -37,7 +37,8 @@ class Anbernic:
         else:
             return self.get_sd2_storage_path()
     
-    def get_current_path_files(self, path):
+    @staticmethod
+    def get_current_path_files(path):
         try:
             entries = os.listdir(path)
             dirs = []

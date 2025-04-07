@@ -1,5 +1,3 @@
-from pathlib import Path
-from typing import List, Optional
 from main import hw_info, system_lang
 from graphic import screen_resolutions
 from language import Translator
@@ -80,11 +78,7 @@ def handle_browser_input() -> None:
 
     if file_list:
         if input.key("DY"):
-            selected_index += input.value
-            if selected_index < 0:
-                selected_index = len(file_list) - 1
-            elif selected_index >= len(file_list):
-                selected_index = 0
+            selected_index = (selected_index + input.value) % len(file_list)
         elif input.key("L1"):
             if selected_index > 0:
                 selected_index = max(0, selected_index - max_elem)
@@ -161,7 +155,7 @@ def handle_browser_input() -> None:
                 i == (selected_index % max_elem),
             )
 
-            cur_file = file_list[selected_index][2]
+        cur_file = file_list[selected_index][2]
         if cur_file == 'image':
             gr.preview_image(file_list[selected_index][1], target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio))
             button_circle((210, button_y), "X", f"{translator.translate('Slideshow')}")
@@ -182,11 +176,7 @@ def handle_image_viewer_input():
     global current_window, selected_index
     
     if input.key("DY"):
-        selected_index += input.value
-        if selected_index < 0:
-            selected_index = len(file_list) - 1
-        elif selected_index >= len(file_list):
-            selected_index = 0
+        selected_index = (selected_index + input.value) % len(file_list)
         enter_fullscreen(file_list[selected_index][1])
     elif input.key("L1"):
         if selected_index > 0:

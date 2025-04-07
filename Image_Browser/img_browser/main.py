@@ -1,4 +1,3 @@
-import sys
 import app
 from pathlib import Path
 
