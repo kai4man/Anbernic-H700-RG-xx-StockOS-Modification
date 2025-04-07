@@ -1,8 +1,5 @@
 import os
-import binascii
-import base64
 from pathlib import Path
-import ssl
 from systems import get_system_extension, systems
 
 
@@ -50,4 +47,3 @@ class Bezels:
                 available_systems.append(system)
 
         return available_systems
-
