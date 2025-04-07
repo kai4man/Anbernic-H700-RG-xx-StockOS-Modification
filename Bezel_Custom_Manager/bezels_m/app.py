@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Optional
 from main import hw_info, system_lang
 from graphic import screen_resolutions
 from language import Translator
@@ -70,11 +69,23 @@ def load_console_menu() -> None:
 
     if available_systems:
         if input.key("DY"):
-            selected_position += input.value
-            if selected_position < 0:
-                selected_position = len(available_systems) - 1
-            elif selected_position >= len(available_systems):
-                selected_position = 0
+            selected_position = (selected_position + input.value) % len(available_systems)
+        elif input.key("L1"):
+            if selected_position > 0:
+                selected_position = max(0, selected_position - max_elem)
+        elif input.key("R1"):
+            if selected_position < len(available_systems) - 1:
+                selected_position = min(
+                    len(available_systems) - 1, selected_position + max_elem
+                )
+        elif input.key("L2"):
+            if selected_position > 0:
+                selected_position = max(0, selected_position - 100)
+        elif input.key("R2"):
+            if selected_position < len(available_systems) - 1:
+                selected_position = min(
+                    len(available_systems) - 1, selected_position + 100
+                )
         elif input.key("A"):
             selected_system = available_systems[selected_position]
             current_window = "cfg"
@@ -144,7 +155,6 @@ def load_cfg_menu() -> None:
     if input.key("B"):
         exit_menu = True
     elif input.key("X"):
-        rom = roms_list[roms_selected_position]
         cfg_file = f"{cfg_path}/{selected_system}.cfg"
         gr.draw_log(f"{translator.translate('Resetting...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
         gr.draw_paint()
@@ -159,11 +169,7 @@ def load_cfg_menu() -> None:
         time.sleep(3)
         exit_menu = True
     elif input.key("DY"):
-        roms_selected_position += input.value
-        if roms_selected_position < 0:
-            roms_selected_position = len(roms_list) - 1
-        elif roms_selected_position >= len(roms_list):
-            roms_selected_position = 0
+        roms_selected_position = (roms_selected_position + input.value) % len(roms_list)
     elif input.key("L1"):
         if roms_selected_position > 0:
             roms_selected_position = max(0, roms_selected_position - max_elem)
