@@ -9,10 +9,15 @@ fi
 . /mnt/mod/ctrl/configs/functions &>/dev/null 2>&1
 progdir=$(cd $(dirname $0); pwd)
 
+ip_addres=$(ip -4 addr show wlan0 | awk '/inet / {print $2}' | cut -d/ -f1)
+if [ -z $ip_addres]; then
+    mpv $rotate_28 --really-quiet --fs --image-display-duration=3 "${progdir}/res/noconn-${LANG_CUR}.png"
+    user_quit
+fi
 cat<<EOF > "${progdir}/res/ip.srt"
 1
 00:00:00,000 --> 02:00:00,000
-IP address: $(ip -4 addr show wlan0 | awk '/inet / {print $2}' | cut -d/ -f1) Port: 22, User: root Pass: root
+IP address: ${ip_addres} Port: 22, User: root, Pass: root
 EOF
 
  case "$HW_MODEL" in
