@@ -21,12 +21,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 font_file = os.path.join(script_dir, 'font', 'font.ttf')
 if not os.path.exists(font_file):
     font_file = "/usr/share/fonts/TTF/DejaVuSansMono.ttf"
-fontFile = {
-    17: ImageFont.truetype(font_file, 17),
-    15: ImageFont.truetype(font_file, 15),
-    13: ImageFont.truetype(font_file, 13),
-    11: ImageFont.truetype(font_file, 11)
-    }
+
 colorBlue = "#bb7200"
 colorBlueD1 = "#7f4f00"
 colorGray = "#292929"
@@ -122,7 +117,7 @@ def draw_clear():
 
 def draw_text(position, text, font=15, color="white", **kwargs):
     global activeDraw
-    activeDraw.text(position, text, font=fontFile[font], fill=color, **kwargs)
+    activeDraw.text(position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs)
 
 
 def draw_rectangle(position, fill=None, outline=None, width=1):
@@ -147,11 +142,10 @@ def draw_circle(position, radius, fill=None, outline="white"):
 def draw_log(text, fill="Black", outline="black", width=500, font=15):
     x = (screen_width - width) / 2
     y = (screen_height - 80) / 2
-    rect_width = screen_width - 40
     rect_height = 80
     draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
 
-    font_obj = fontFile[font]
+    font_obj = ImageFont.truetype(font_file, font)
     padding = 10
     max_width = width - 2 * padding
 
@@ -199,14 +193,14 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
         draw_text((text_x, text_y), line, font, anchor="mm")
 
 
-def draw_help(text, fill="Black", outline="black", width=500, font=15):
+def draw_help(text, fill="Black", outline="black", font=15):
     x = 20
     y = (screen_height - 180)
     rect_width = screen_width - 40
     rect_height = 130
     draw_rectangle_r([x, y, screen_width - 20, y + rect_height], 5, fill=fill, outline=outline)
 
-    font_obj = fontFile[font]
+    font_obj = ImageFont.truetype(font_file, font)
     padding = 10
     max_width = rect_width - 2 * padding
 
