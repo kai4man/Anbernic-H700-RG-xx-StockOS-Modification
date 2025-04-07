@@ -1,7 +1,7 @@
 #!/bin/bash
 
 . /mnt/mod/ctrl/configs/functions &>/dev/null 2>&1
-progdir="$(cd $(dirname "$0"); pwd)"/bezels_m
+progdir="$(cd $(dirname "$0") || exit; pwd)"/bezels_m
 
 program="python3 ${progdir}/main.py"
 log_file="${progdir}/log.txt"
