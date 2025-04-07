@@ -1,10 +1,6 @@
 import subprocess
 import shutil
-import re
 import os
-import binascii
-import base64
-import ssl
 import uuid
 import config as cf
 from pathlib import Path
@@ -26,7 +22,8 @@ class Themes:
     def __init__(self):
         self.user = ""
 
-    def get_themes(self, path, system: str) -> list[Files]:
+    @staticmethod
+    def get_themes(path, system: str) -> list[Files]:
         themes = []
         system_path = Path(path) / system
         system_extensions = get_system_extension(system)
@@ -46,7 +43,8 @@ class Themes:
                     themes.append(theme_file)
         return themes
 
-    def get_logos(self, path, system: str) -> list[Files]:
+    @staticmethod
+    def get_logos(path, system: str) -> list[Files]:
         logos = []
         system_path = Path(path) / system
         system_extensions = get_system_extension(system)
@@ -66,7 +64,8 @@ class Themes:
                     logos.append(logo_rom)
         return logos
 
-    def get_available_systems(self, roms_path: str) -> list[str]:
+    @staticmethod
+    def get_available_systems(roms_path: str) -> list[str]:
         all_systems = [system["name"] for system in systems]
         available_systems = []
         for system in all_systems:
@@ -75,25 +74,26 @@ class Themes:
                 available_systems.append(system)
         return available_systems
 
-    def set_bootlogo(self, logo_file: str):
-        BOOT_DEVICE = '/dev/mmcblk0p2'
-        BOOT_PATH = '/mnt/boot'
-        os.makedirs(BOOT_PATH, exist_ok=True)
-        mount_command = f"mount -t vfat -o rw,utf8,noatime {BOOT_DEVICE} {BOOT_PATH}"
+    @staticmethod
+    def set_bootlogo(logo_file: str):
+        boot_device = '/dev/mmcblk0p2'
+        boot_path = '/mnt/boot'
+        os.makedirs(boot_path, exist_ok=True)
+        mount_command = f"mount -t vfat -o rw,utf8,noatime {boot_device} {boot_path}"
         subprocess.run(mount_command, shell=True, check=True)
-        copy_command = f"cp -f {logo_file} {BOOT_PATH}/bootlogo.bmp"
+        copy_command = f"cp -f {logo_file} {boot_path}/bootlogo.bmp"
         subprocess.run(copy_command, shell=True, check=True)
-        umount_command = f"umount {BOOT_PATH}"
+        umount_command = f"umount {boot_path}"
         subprocess.run(umount_command, shell=True, check=True)
-        if os.path.exists(BOOT_PATH):
-            os.rmdir(BOOT_PATH)
+        if os.path.exists(boot_path):
+            os.rmdir(boot_path)
 
-    def install_theme(self, theme_path: str, theme_file: str):
-        DIR_THE = theme_path
+    def install_theme(self, theme_path: Path, theme_file: str):
+        dir_the = theme_path
         file_path = theme_file
-        BOOT_PATH = '/mnt/mmc/anbernic/bootlogo'
-        STOCK_DIR = '/usr/bin'
-        unzip_path = os.path.join(STOCK_DIR, 'unzip')
+        boot_path = '/mnt/mmc/anbernic/bootlogo'
+        stock_dir = '/usr/bin'
+        unzip_path = os.path.join(stock_dir, 'unzip')
         board_ini_path = '/mnt/vendor/oem/board.ini'
         try:
             with open(board_ini_path, 'r') as f:
@@ -101,7 +101,7 @@ class Themes:
                 is_rg28xx = 'RG28xx' in board_ini_content
         except FileNotFoundError:
             is_rg28xx = False
-        tmp_dir = os.path.join(DIR_THE, 'tmp')
+        tmp_dir = os.path.join(dir_the, 'tmp')
         if os.path.exists(tmp_dir):
             shutil.rmtree(tmp_dir)
         os.makedirs(tmp_dir, exist_ok=True)
@@ -124,7 +124,7 @@ class Themes:
                         img = Image.open(logo_file)
                         rotated_img = img.rotate(90, expand=True)
                         rotated_img.save(logo_file)
-                    shutil.copy2(logo_file, os.path.join(BOOT_PATH, new_bootlogo_name))
+                    shutil.copy2(logo_file, os.path.join(boot_path, new_bootlogo_name))
                     self.set_bootlogo(logo_file)
                     cf.set_config("boot.logo", 0)
                 elif file_name.lower().endswith('.ttf'):

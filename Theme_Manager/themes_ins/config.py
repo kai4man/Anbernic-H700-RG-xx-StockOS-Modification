@@ -69,7 +69,7 @@ def get_config(keys):
 def switch_config(keys, max):
     config = read_config(config_file)
     cur_value = get_value(config, keys)
-    if cur_value != None:
+    if cur_value is not None:
         cur_value = int(cur_value) + 1
         if cur_value == max:
             cur_value = 0

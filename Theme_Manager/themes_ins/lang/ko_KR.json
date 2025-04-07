@@ -31,13 +31,14 @@
   "This bootlogo cannot be previewed!": "이 부트로고는 미리\n볼 수 없습니다!",
   "This theme is missing preview images!": "이 테마에는 미리보기\n이미지가 없습니다!",
   "Welcome": "환영!",
-  "bootlogo": "Boot Logo",
+  "bootlogo": "부츠 로고",
   "of": "의",
-  "themes": "Themes",
+  "themes": "테마",
+  "Switch": "전환",
   "help_console": "주의: 기능을 선택하십시오.",
   "help_theme": "주의: 테마를 설치하기 전에 기존 테마를 백업할 수 있습니다. 새 백업을 생성하면 기존 백업 파일이 덮어쓰입니다.",
   "help_logo": "주의: 좋아하는 부팅 로고 이미지를 선택하여 설정하십시오.",
-  "message_02-1": "1. 테마 파일은 SD1의 'anbernic/themes'에 있습니다.\n테마 파일 형식은 .zip 압축 파일이고,\n해당 미리보기 이미지 형식은 .png입니다.\n파일 이름과 위치는 테마와 동일합니다.\n",
-  "message_02-2": "2. 부트 로고는 SD1의 'anbernic/bootlogo'에 배치됩니다.\n파일 형식은 .bmp 이미지이고 해상도는 호스트와\n동일합니다. RG28xx에 해당하는 부트 로고는\n미리 회전할 필요가 없습니다.\n",
+  "message_02-1": "1. 테마 파일은 SD1 또는 SD2의 'anbernic/themes'에 있습니다.\n테마 파일 형식은 .zip 압축 파일이고,\n해당 미리보기 이미지 형식은 .png입니다.\n파일 이름과 위치는 테마와 동일합니다.\n",
+  "message_02-2": "2. 부트 로고는 SD1 또는 SD2의 'anbernic/bootlogo'에 배치됩니다.\n파일 형식은 .bmp 이미지이고 해상도는 호스트와\n동일합니다. RG28xx에 해당하는 부트 로고는\n미리 회전할 필요가 없습니다.\n",
   "message_02-3": "3. '백업' 및 '복원': 이 기능은 현재 OS의 설치된\n테마 파일에만 적용되며, 설치되지 않은 테마\n파일과는 아무런 관련이 없습니다.\n'Ran.Disp': 이 기능은 시작할 때마다 다른\n부트 로고의 무작위 표시를 실현할 수 있습니다.\n부트 로고가 있는 테마를 설치한 후에는\n자동으로 비활성화됩니다."
 }

@@ -31,13 +31,14 @@
   "This bootlogo cannot be previewed!": "Ce logo de démarrage ne peut\npas être prévisualisé!",
   "This theme is missing preview images!": "Il manque des images\nd'aperçu à ce thème!",
   "Welcome": "Bienvenu!",
-  "bootlogo": "Boot Logo",
+  "bootlogo": "Logo Boot",
   "of": "de",
-  "themes": "Themes",
+  "themes": "Thèmes",
+  "Switch": "Basculer",
   "help_console": "Remarque : Sélectionnez une fonction.",
   "help_theme": "Remarque : Avant d'installer un thème, vous pouvez sauvegarder le thème existant. Créer une nouvelle sauvegarde écrasera le fichier de sauvegarde existant.",
   "help_logo": "Remarque : Sélectionnez l'image de démarrage préférée et configurez-la.",
-  "message_02-1": "1. Le fichier du thème se trouve dans le répertoire\n«anbernic/themes» de SD1. Le fichier du thème est compressé\nau format .zip et l'image d'aperçu correspondante au\nformat .png. Le nom et l'emplacement du fichier\nsont identiques à ceux du thème.\n",
-  "message_02-2": "2. Le logo de démarrage est placé dans le répertoire\n«anbernic/bootlogo» de SD1. Le format de fichier est\nune image .bmp et la résolution est identique à celle\nde l'hôte. Le logo de démarrage correspondant à\nRG28xx n'a pas besoin d'être pivoté au préalable.\n",
+  "message_02-1": "1. Le fichier du thème se trouve dans le répertoire\n«anbernic/themes» de SD1 ou SD2. Le fichier du thème est compressé\nau format .zip et l'image d'aperçu correspondante au\nformat .png. Le nom et l'emplacement du fichier\nsont identiques à ceux du thème.\n",
+  "message_02-2": "2. Le logo de démarrage est placé dans le répertoire\n«anbernic/bootlogo» de SD1 ou SD2. Le format de fichier est\nune image .bmp et la résolution est identique à celle\nde l'hôte. Le logo de démarrage correspondant à\nRG28xx n'a pas besoin d'être pivoté au préalable.\n",
   "message_02-3": "3. «Sauvegarde» et «Restaurer»: Cette fonction s'applique\nuniquement aux fichiers de thème installés sur le système\nd'exploitation actuel et n'a rien à voir avec les fichiers de thème\nnon installés. «Affichage aléatoire»: Cette fonction permet\nd'afficher aléatoirement un logo de démarrage différent à\nchaque démarrage. Elle sera automatiquement désactivée\naprès l'installation d'un thème avec logo de démarrage."
 }

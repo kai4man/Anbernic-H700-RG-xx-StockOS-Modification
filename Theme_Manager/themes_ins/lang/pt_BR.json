@@ -31,13 +31,14 @@
   "This bootlogo cannot be previewed!": "Este bootlogo não\npode ser visualizado!",
   "This theme is missing preview images!": "Este tema não tem\nimagens de pré-visualização!",
   "Welcome": "Bem-vindo!",
-  "bootlogo": "Boot Logo",
+  "bootlogo": "Logotipo da Boot",
   "of": "de",
-  "themes": "Themes",
+  "themes": "Temas",
+  "Switch": "Alternar",
   "help_console": "Nota: Selecione uma função.",
   "help_theme": "Nota: Antes de instalar um tema, você pode fazer backup do tema existente. Criar um novo backup sobrescreverá o arquivo de backup existente.",
   "help_logo": "Nota: Selecione a imagem de inicialização preferida e configure-a.",
-  "message_02-1": "1. O arquivo do tema é colocado em 'anbernic/themes' do\nSD1. O formato do arquivo do tema é um arquivo compactado .zip,\ne o formato da imagem de pré-visualização correspondente é .png.\nO nome do arquivo e o local são os mesmos do tema.\n",
-  "message_02-2": "2. O logotipo de inicialização é colocado em 'anbernic/bootlogo' do\nSD1. O formato do arquivo é imagem .bmp e a resolução\né a mesma do host. O logotipo de inicialização correspondente\nto RG28xx não precisa ser rotacionado com antecedência.\n",
+  "message_02-1": "1. O arquivo do tema é colocado em 'anbernic/themes' do\nSD1 ou SD2. O formato do arquivo do tema é um arquivo compactado .zip,\ne o formato da imagem de pré-visualização correspondente é .png.\nO nome do arquivo e o local são os mesmos do tema.\n",
+  "message_02-2": "2. O logotipo de inicialização é colocado em 'anbernic/bootlogo' do\nSD1 ou SD2. O formato do arquivo é imagem .bmp e a resolução\né a mesma do host. O logotipo de inicialização correspondente\nto RG28xx não precisa ser rotacionado com antecedência.\n",
   "message_02-3": "3. 'Backup' e 'Restaurar': Esta função se aplica somente aos\narquivos de tema instalados do SO atual e não tem nada a ver com\nos arquivos de tema que não estão instalados. 'Ran. Disp':\nEsta função pode realizar a exibição aleatória de diferentes\nlogotipos de inicialização em cada inicialização. Ela será\nautomaticamente desabilitada após a instalação de um tema\ncom logotipo de inicialização."
 }

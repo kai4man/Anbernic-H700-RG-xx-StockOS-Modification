@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Optional
 from main import hw_info, system_lang
 from graphic import screen_resolutions
 from language import Translator
@@ -24,7 +23,7 @@ an = Anbernic()
 themes = Themes()
 skip_input_check = False
 
-x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
+x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 9))
 
 button_x = x_size - 120
 button_y = y_size - 30
@@ -75,15 +74,11 @@ def update() -> None:
 def load_console_menu() -> None:
     global selected_position, selected_system, current_window, skip_input_check
 
-    available_systems = ['themes', 'bootlogo'] #themes.get_available_systems(an.get_sd_storage_path())
+    available_systems = themes.get_available_systems(an.get_sd_storage_path())
 
     if available_systems:
         if input.key("DY"):
-            selected_position += input.value
-            if selected_position < 0:
-                selected_position = len(available_systems) - 1
-            elif selected_position >= len(available_systems):
-                selected_position = 0
+            selected_position = (selected_position + input.value) % len(available_systems)
         elif input.key("A"):
             selected_system = available_systems[selected_position]
             if selected_system == "themes":
@@ -96,14 +91,19 @@ def load_console_menu() -> None:
             gr.draw_paint()
             skip_input_check = True
             return
-        elif input.key("Y"):
+        elif input.key("X"):
             current_window = "help"
+            skip_input_check = True
+            return
+        elif input.key("Y"):
+            an.switch_sd_storage()
+            selected_position = 0
             skip_input_check = True
             return
 
     gr.draw_clear()
 
-    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
+    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 110], 15, fill=gr.colorGrayD2, outline=None)
     gr.draw_text((x_size / 2, 20), f"{translator.translate('Themes Manager')} {ver}", 17, anchor="mm")
     gr.draw_help(
         f"{translator.translate('help_console')}", fill=None, outline=gr.colorBlueD1
@@ -122,7 +122,8 @@ def load_console_menu() -> None:
             (x_size / 2, y_size / 2), f"{translator.translate('No file found.')}", anchor="mm"
         )
 
-    button_circle((button_x - 120, button_y), "Y", f"{translator.translate('Help')}")
+    button_circle((button_x - 300, button_y), "X", f"{translator.translate('Help')}")
+    button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
     button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
@@ -138,7 +139,7 @@ def load_theme_menu() -> None:
 
     exit_menu = False
     theme_list = themes.get_themes(an.get_sd_storage_path(), selected_system)
-    system_path = Path(an.get_sd_storage_path()) / selected_system
+    system_path: Path = Path(an.get_sd_storage_path()) / selected_system
 
     if len(theme_list) < 1:
         current_window = "console"
@@ -154,11 +155,7 @@ def load_theme_menu() -> None:
     if input.key("B"):
         exit_menu = True
     elif input.key("DY"):
-        theme_selected_position += input.value
-        if theme_selected_position < 0:
-            theme_selected_position = len(theme_list) - 1
-        elif theme_selected_position >= len(theme_list):
-            theme_selected_position = 0
+        theme_selected_position = (theme_selected_position + input.value) % len(theme_list)
     elif input.key("L1"):
         if theme_selected_position > 0:
             theme_selected_position = max(0, theme_selected_position - max_elem)
@@ -232,7 +229,7 @@ def load_theme_menu() -> None:
         return
 
     gr.draw_clear()
-    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGray, outline=None)
+    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 110], 15, fill=gr.colorGray, outline=None)
     gr.draw_text(
         (x_size / 2, 20),
         f"{translator.translate(selected_system)} : {theme_selected_position + 1} {translator.translate('of')} {len(theme_list)}",
@@ -259,10 +256,6 @@ def load_theme_menu() -> None:
         img_file = f"{system_path}/{theme.name}.jpg"
     if os.path.exists(img_file):
         gr.display_image(img_file, target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio), rota=0)
-    else:
-        gr.draw_log(
-            f"{translator.translate('This theme is missing preview images!')}", fill=gr.colorBlue, outline=gr.colorBlueD1
-        )
 
     button_circle((20, button_y), "A", f"{translator.translate('Install')}")
     button_circle((120, button_y), "B", f"{translator.translate('Back')}")
@@ -298,11 +291,7 @@ def load_logo_menu() -> None:
         skip_input_check = True
         return
     elif input.key("DY"):
-        logo_selected_position += input.value
-        if logo_selected_position < 0:
-            logo_selected_position = len(logo_list) - 1
-        elif logo_selected_position >= len(logo_list):
-            logo_selected_position = 0
+        logo_selected_position = (logo_selected_position + input.value) % len(logo_list)
     elif input.key("L1"):
         if logo_selected_position > 0:
             logo_selected_position = max(0, logo_selected_position - max_elem)
@@ -342,7 +331,7 @@ def load_logo_menu() -> None:
         time.sleep(2)
 
     gr.draw_clear()
-    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGray, outline=None)
+    gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 110], 15, fill=gr.colorGray, outline=None)
     gr.draw_text(
         (x_size / 2, 20),
         f"{translator.translate(selected_system)} : {logo_selected_position + 1} {translator.translate('of')} {len(logo_list)}",
@@ -367,10 +356,6 @@ def load_logo_menu() -> None:
     img_file = f"{system_path}/{logo.filename}"
     if os.path.exists(img_file):
         gr.display_image(img_file, target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio))
-    else:
-        gr.draw_log(
-            f"{translator.translate('This bootlogo cannot be previewed!')}", fill=gr.colorBlue, outline=gr.colorBlueD1
-        )
 
     button_circle((20, button_y), "A", f"{translator.translate('Set')}")
     button_circle((140, button_y), "B", f"{translator.translate('Back')}")

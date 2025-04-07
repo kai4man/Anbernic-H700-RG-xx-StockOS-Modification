@@ -31,13 +31,14 @@
   "This bootlogo cannot be previewed!": "Dieses Bootlogo kann nicht in\nder Vorschau angezeigt werden!",
   "This theme is missing preview images!": "Diesem Design fehlen Vorschaubilder!",
   "Welcome": "Willkommen!",
-  "bootlogo": "Boot Logo",
+  "bootlogo": "Boot-Logo",
   "of": "de",
+  "Switch": "Wechseln",
   "help_console": "Hinweis: Wählen Sie eine Funktion.",
   "help_theme": "Hinweis: Vor der Installation eines Themas können Sie das vorhandene Thema sichern. Erstellen einer neuen Sicherung überschreibt die vorhandenen Backup-Dateien.",
   "help_logo": "Hinweis: Wählen Sie das bevorzugte Bootbild aus und konfigurieren Sie es.",
-  "themes": "Themes",
-  "message_02-1": "1. Die Designdatei befindet sich im Verzeichnis 'anbernic/themes'\nvon SD1. Das Designdateiformat ist eine komprimierte ZIP-Datei\nund das zugehörige Vorschaubildformat ist .png.\nDateiname und Speicherort entsprechen denen des Designs.\n",
-  "message_02-2": "2. Das Boot-Logo befindet sich im Verzeichnis 'anbernic/bootlogo'\nvon SD1. Das Dateiformat ist ein BMP-Bild, und die Auflösung\nentspricht der des Hosts. Das Boot-Logo für RG28xx\nmuss nicht vorab gedreht werden.\n",
+  "themes": "Themen",
+  "message_02-1": "1. Die Designdatei befindet sich im Verzeichnis 'anbernic/themes'\nvon SD1 oder SD2. Das Designdateiformat ist eine komprimierte ZIP-Datei\nund das zugehörige Vorschaubildformat ist .png.\nDateiname und Speicherort entsprechen denen des Designs.\n",
+  "message_02-2": "2. Das Boot-Logo befindet sich im Verzeichnis 'anbernic/bootlogo'\nvon SD1 oder SD2. Das Dateiformat ist ein BMP-Bild, und die Auflösung\nentspricht der des Hosts. Das Boot-Logo für RG28xx\nmuss nicht vorab gedreht werden.\n",
   "message_02-3": "3. 'Sichern' und 'Wiederherstellen': Diese Funktion gilt nur für die\ninstallierten Designdateien des aktuellen Betriebssystems\nund hat nichts mit nicht installierten Designdateien zu tun.\n'Ausgeführt. Anzeige': Diese Funktion ermöglicht die\nzufällige Anzeige eines anderen Bootlogos bei\njedem Systemstart. Nach der Installation eines\nDesigns mit Bootlogo wird sie automatisch deaktiviert."
 }
