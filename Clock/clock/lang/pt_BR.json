@@ -1,0 +1,22 @@
+{
+    "CLOCK": "Relógio",
+    "Exit": "Sair",
+    "Exiting...": "A Sair...",
+    "Hours": "Horas",
+    "Minutes": "Minutos",
+    "Open": "Abrir",
+    "Press DY to adjust, DX to switch setting": "▲/▼: Ajustar, ◀/▶: Mudar definição",
+    "Press M/F to Exit": "M/F: Sair",
+    "Press START to start, M/F to Exit": "START: Iniciar, M/F: Sair",
+    "Press START to start/stop, SELECT to reset": "START: Iniciar/Parar, SELECT: Reiniciar",
+    "STOPWATCH": "Cronómetro",
+    "Seconds": "Segundos",
+    "Set Timer": "Definir Temporizador",
+    "Set": "Definir",
+    "TIMER": "Temporizador",
+    "Timer finished!": "Temporizador concluído!",
+    "welcome": "Bem-vindo!",
+    "At the end": "No final",
+    "Sound": "Toque",
+    "Vibrate": "Vibração"
+}

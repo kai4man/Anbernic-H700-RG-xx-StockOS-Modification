@@ -1,0 +1,22 @@
+{
+    "CLOCK": "时钟",
+    "Exit": "退出",
+    "Exiting...": "正在退出...",
+    "Hours": "时",
+    "Minutes": "分",
+    "Open": "打开",
+    "Press DY to adjust, DX to switch setting": "▲/▼: 调整, ◀/▶: 切换设置",
+    "Press M/F to Exit": "M/F: 退出",
+    "Press START to start, M/F to Exit": "START: 开始, M/F: 退出",
+    "Press START to start/stop, SELECT to reset": "START: 开始/暂停, SELECT: 重置归零 ",
+    "STOPWATCH": "秒表",
+    "Seconds": "秒",
+    "Set Timer": "设置倒计时",
+    "Set": "设置",
+    "TIMER": "倒计时",
+    "Timer finished!": "倒计时结束!",
+    "welcome": "欢迎使用!",
+    "At the end": "结束时",
+    "Sound": "铃声",
+    "Vibrate": "振动"
+}

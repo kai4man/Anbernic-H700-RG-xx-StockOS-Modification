@@ -1,0 +1,22 @@
+{
+    "CLOCK": "Horloge",
+    "Exit": "Quitter",
+    "Exiting...": "Fermeture en cours...",
+    "Hours": "Heures",
+    "Minutes": "Minutes",
+    "Open": "Ouvrir",
+    "Press DY to adjust, DX to switch setting": "▲/▼: Ajuster, ◀/▶: Changer",
+    "Press M/F to Exit": "M/F : Quitter",
+    "Press START to start, M/F to Exit": "START : Démarrer, M/F : Quitter",
+    "Press START to start/stop, SELECT to reset": "START : Démarrer/Arrêter, SELECT : Réinitialiser",
+    "STOPWATCH": "Chronomètre",
+    "Seconds": "Secondes",
+    "Set Timer": "Configurer le minuteur",
+    "Set": "Configurer",
+    "TIMER": "Minuteur",
+    "Timer finished!": "Minuteur terminé !",
+    "welcome": "Bienvenue !",
+    "At the end": "À la fin",
+    "Sound": "Son",
+    "Vibrate": "Vibration"
+}
