@@ -19,7 +19,7 @@ class Anbernic:
             return self.__sd2_rom_storage_path
 
     def switch_sd_storage(self):
-        if self.__current_sd == 1:
+        if self.__current_sd == 1 and any(Path("/mnt/sdcard").iterdir()):
             self.__current_sd = 2
         else:
             self.__current_sd = 1
