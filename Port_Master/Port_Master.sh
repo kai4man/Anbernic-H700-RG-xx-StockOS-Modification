@@ -1,15 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
 # ========================
 # КОНФИГУРАЦИОННЫЕ ПЕРЕМЕННЫЕ
 # ========================
 
+program="$(cd $(dirname "$0"); pwd)"
+
 # URL для загрузки и информации о версии
 GITHUB_API_URL="https://api.github.com/repos/PortsMaster/PortMaster-GUI/releases/latest"
 GITHUB_DOWNLOAD_URL="https://github.com/PortsMaster/PortMaster-GUI/releases/latest/download/PortMaster.zip"
 
+# Параметры языка
+sys_lang=(zh_CN zh_CN en_US ja_JP ko_KR es_ES ru_RU de_DE fr_FR pt_BR)
+set_lang=${sys_lang[$(head -n 1 /mnt/vendor/oem/language.ini)]}
+
 # Основные пути
-BASE_INSTALL_DIR="/mnt/sdcard/roms/PORTS"
+if mountpoint -q /mnt/sdcard; then
+    BASE_INSTALL_DIR="/mnt/sdcard/Roms/PORTS"
+else
+    BASE_INSTALL_DIR="/mnt/mmc/Roms/PORTS"
+fi
 LEGACY_PORTMASTER_DIR="/roms/ports/PortMaster"
 
 # Служебные пути
@@ -18,6 +28,9 @@ TEMP_DIR="/tmp/PortMaster_Update"
 LOG_FILE="$LEGACY_PORTMASTER_DIR/update.log"
 PYLIBS_DIR="$LEGACY_PORTMASTER_DIR/pylibs/harbourmaster"
 CONFIG_FILE="$PYLIBS_DIR/config.py"
+HARBOUR_FILE="$PYLIBS_DIR/harbour.py"
+HARDWARE_FILE="$PYLIBS_DIR/hardware.py"
+LANG_FILE="$LEGACY_PORTMASTER_DIR/config/config.json"
 
 # Быстрая проверка интернета (без таймаутов)
 PING_TEST_HOST="8.8.8.8"  # Google DNS
@@ -37,6 +50,45 @@ init_logs() {
 # Логирование
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >&3
+}
+
+# Автоматические настройки языка
+auto_set_lang() {
+    [ -f "$LANG_FILE" ] || return 0  # Если файла нет - ничего не делаем
+    
+    if grep -q 'language' "$LANG_FILE"; then
+        if ! grep -q "$set_lang" "$LANG_FILE"; then
+            temp_file="$LANG_FILE.tmp"
+            sed -E "s/\"language\": \"[^\"]+\"/\"language\": \"$set_lang\"/" "$LANG_FILE" > "$temp_file"
+            if [ $? -eq 0 ]; then
+                mv "$temp_file" "$LANG_FILE"
+                log "Язык изменен успешно"
+            else
+                rm -f "$temp_file"
+                return 1
+            fi
+        fi
+    else
+        sed -i -e "3i\    \"language\": \""$set_lang"\"," "$LANG_FILE"
+    fi
+    return 0
+
+}
+
+# Другие повышения
+other_update() {
+    # Шрифт
+    if [ ! -f "$LEGACY_PORTMASTER_DIR/default.ttf" ]; then
+        cp -f "/mnt/vendor/bin/default.ttf" "$LEGACY_PORTMASTER_DIR/default.ttf"
+    fi
+    if [ ! -L "$LEGACY_PORTMASTER_DIR/pylibs/resources/NotoSansSC-Regular.ttf" ]; then
+        rm -f "$LEGACY_PORTMASTER_DIR/pylibs/resources/NotoSansSC-Regular.ttf"
+        ln -sf "$LEGACY_PORTMASTER_DIR/default.ttf" "$LEGACY_PORTMASTER_DIR/pylibs/resources/NotoSansSC-Regular.ttf"
+    fi
+    if [ -f "$LEGACY_PORTMASTER_DIR/pugwash.txt" ]; then
+        rm -f "$LEGACY_PORTMASTER_DIR/pugwash.txt"
+    fi
+    "$program/ports_fix"
 }
 
 # Мгновенная проверка интернета (без ожидания)
@@ -100,6 +152,131 @@ check_and_update_config() {
     fi
     
     return 0
+}
+
+# Проверка и обновление конфигурации
+check_and_update_harbour() {
+    [ -f "$HARBOUR_FILE" ] || return 0  # Если файла нет - ничего не делаем
+    
+    log "Проверка конфигурации harbourmaster..."
+    if ! grep -q 'self.install_image(port_info)' "$HARBOUR_FILE"; then
+        line1=$(grep -n 'self.callback.message_box(_("Port {download_name!r} installed successfully.").format(download_name=port_nice_name))' "$HARBOUR_FILE" | cut -d ":" -f 1)
+        line2=$(expr $line1 + 2)
+        sed -i ''${line2}'i\        self.install_image(port_info)' "$HARBOUR_FILE"
+    fi
+    if ! grep -q 'self.uninstall_image(port_info)' "$HARBOUR_FILE"; then
+        line1=$(grep -n 'self.callback.message_box(_("Successfully uninstalled {port_name}").format(port_name=port_info_name))' "$HARBOUR_FILE" | cut -d ":" -f 1)
+        line2=$(expr $line1 + 1)
+        sed -i ''${line2}'i\        self.uninstall_image(port_info)' "$HARBOUR_FILE"
+    fi
+    if ! grep -q 'def install_image(self, port_info_list):' "$HARBOUR_FILE"; then
+        new_code='    def install_image(self, port_info_list):
+        logger.info(f"install_image-->port_info_list: {port_info_list}")
+        port_dir = f"{self.ports_dir}"
+        port_image_dir = self.ports_dir / "Imgs"
+        port_script_filename = None
+        for item in port_info_list["items"]:
+            if self._ports_dir_exists(item):
+                if item.casefold().endswith("/"):
+                    part = item.rsplit("/")
+                    port_dir = Path(port_dir) / part[0]
+                if item.casefold().endswith(".sh"):
+                    port_script_filename = os.path.splitext(item)
+        port_image_list = port_info_list.get("attr", {}).get("image")
+        if isinstance(port_image_list, dict):
+            for key, port_image in port_image_list.items():
+                if port_image.lower().endswith(".png") or port_image.lower().endswith(".jpg"):
+                    port_image_filename = os.path.splitext(port_image)
+                    break
+                else:
+                    return 1
+        elif isinstance(port_image_list, str):
+            port_image = port_image_list
+            port_image_filename = os.path.splitext(port_image)
+        if not port_image_dir.exists():
+            os.makedirs(port_image_dir, exist_ok=True)
+        source_image_path = Path(port_dir) / port_image
+        target_image_path = Path(port_image_dir) / f"{port_script_filename[0]}{port_image_filename[1]}"
+        logger.info(f"source_image_path: {source_image_path}, target_image_path: {target_image_path}")
+        shutil.copy2(source_image_path, target_image_path)
+'
+        line1=$(grep -n '__all__ = (' "$HARBOUR_FILE" | cut -d ":" -f 1)
+        line2=$(expr $line1 - 1)
+        sed -i ''${line2}'r /dev/stdin' <<< "$new_code" "$HARBOUR_FILE"
+    fi
+    if ! grep -q 'def uninstall_image(self, port_info):' "$HARBOUR_FILE"; then
+        new_code='    def uninstall_image(self, port_info):
+        logger.info(f"uninstall_image-->port_info: {port_info}")
+        port_image_dir = self.ports_dir / "Imgs"
+        for item in port_info["items"]:
+            if item.casefold().endswith(".sh"):
+                port_script_filename = os.path.splitext(item)
+        port_image_list = port_info.get("attr", {}).get("image")
+        if isinstance(port_image_list, dict):
+            for key, port_image in port_image_list.items():
+                if port_image.lower().endswith(".png") or port_image.lower().endswith(".jpg"):
+                    port_image_filename = os.path.splitext(port_image)
+                    break
+                else:
+                    return 1
+        elif isinstance(port_image_list, str):
+            port_image = port_image_list
+            port_image_filename = os.path.splitext(port_image)
+        target_image_path = Path(port_image_dir) / f"{port_script_filename[0]}{port_image_filename[1]}"
+        logger.info(f"target_image_path: {target_image_path}")
+        if target_image_path.exists():
+            target_image_path.unlink()
+'
+        line1=$(grep -n '__all__ = (' "$HARBOUR_FILE" | cut -d ":" -f 1)
+        line2=$(expr $line1 - 1)
+        sed -i ''${line2}'r /dev/stdin' <<< "$new_code" "$HARBOUR_FILE"
+    fi
+    
+    old_text="https://github.com/PortsMaster/PortMaster-Info/raw/main/"
+    new_text="https://github.com/PortsMaster/PortMaster-Info/blob/main/"
+
+    if grep -q "$old_text" "$HARBOUR_FILE"; then
+
+        log "Обновление конфигурации..."
+
+        temp_file="$HARBOUR_FILE.tmp"
+        sed "s|$old_text|$new_text|g" "$HARBOUR_FILE" > "$temp_file"
+        if [ $? -eq 0 ]; then
+            mv "$temp_file" "$HARBOUR_FILE"
+            log "Конфигурация обновлена"
+        else
+            rm -f "$temp_file"
+            log "Ошибка настройки обновления"
+            return 1
+        fi
+        
+    else
+        log "Конфигурация актуальна"
+    fi
+    
+    return 0
+}
+
+# Проверка и обновление конфигурации
+check_and_update_hardware() {
+    if ! grep -q "h700_info = safe_cat('/mnt/vendor/oem/board.ini')" "$HARDWARE_FILE"; then
+        new_code="        h700_info = safe_cat('/mnt/vendor/oem/board.ini')
+        if h700_info != '':
+            hw_list = {
+                'RGcubexx': 'sun50iw9',
+                'RG34xx': 'anbernic rg34xx',
+                'RG34xxSP': 'anbernic rg34xx',
+                'RG28xx': 'anbernic rg28xx',
+                'RG35xx+_P': 'anbernic rg35xx plus',
+                'RG35xxH': 'anbernic rg35xx h',
+                'RG35xxSP': 'anbernic rg35xx sp',
+                'RG40xxH': 'anbernic rg40xx h',
+                'RG40xxV': 'anbernic rg40xx v'
+            }
+            sfdbm = hw_list.get(h700_info, 'sun50iw9')"
+        line1=$(grep -n "if sfdbm != '':" "$HARDWARE_FILE" | cut -d ":" -f 1)
+        sed -i ''${line1}'r /dev/stdin' <<< "$new_code" "$HARDWARE_FILE"
+    fi
 }
 
 # Получение последней версии с GitHub (только если есть интернет)
@@ -247,6 +424,10 @@ log "=== Начало процесса обновления ==="
 
 # Всегда проверяем конфигурацию
 check_and_update_config || log "Предупреждение: проблемы с конфигурацией"
+check_and_update_harbour || log "Предупреждение: проблемы с конфигурацией"
+#check_and_update_hardware || log "Предупреждение: проблемы с конфигурацией"
+auto_set_lang || log "Ошибка настройки языка"
+other_update || log "Другие ошибки обновления"
 
 # Пытаемся получить последнюю версию (если есть интернет)
 if LATEST_VERSION=$(get_latest_version); then
