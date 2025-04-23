@@ -29,6 +29,13 @@ button_x = x_size - 120
 button_y = y_size - 30
 ratio = y_size / x_size
 
+help_info = {
+    0: 'theme_help',
+    1: 'logo_help',
+    2: 'back.theme_help',
+    3: 'restore.theme_help',
+    4: 'restore.stock_help'
+}
 
 def start():
     print("[INFO]Starting Themes Manager...")
@@ -74,7 +81,9 @@ def update() -> None:
 def load_console_menu() -> None:
     global selected_position, selected_system, current_window, skip_input_check
 
-    available_systems = themes.get_available_systems(an.get_sd_storage_path())
+    #available_systems = themes.get_available_systems(an.get_sd_storage_path())
+    available_systems = ["themes", "bootlogo", "back.theme", "restore.theme", "restore.stock"]
+    selected_system = available_systems[selected_position]
 
     if available_systems:
         if input.key("DY"):
@@ -85,6 +94,72 @@ def load_console_menu() -> None:
                 current_window = "theme"
             elif selected_system == "bootlogo":
                 current_window = "logo"
+            elif selected_system == "back.theme":
+                gr.draw_log(f"{translator.translate('Backing up in progress...')}", fill=gr.colorBlue,
+                            outline=gr.colorBlueD1)
+                gr.draw_paint()
+                back_path = "/mnt/mmc/anbernic/backup"
+                if not os.path.exists(back_path):
+                    os.mkdir(back_path)
+                back_file = f"{back_path}/Theme_bak.zip"
+                files = [
+                    "/mnt/vendor/res1/",
+                    "/mnt/vendor/res2/",
+                    "/mnt/vendor/bin/default.ttf"
+                ]
+                files_to_compress = []
+                for file in files:
+                    if os.path.exists(file):
+                        files_to_compress.append(file)
+                back_command = f"zip -qr {back_file} {' '.join(files_to_compress)}"
+                subprocess.run(back_command, shell=True, check=True)
+                gr.draw_log(
+                    f"{translator.translate('Theme backup successful!')} {back_file}", fill=gr.colorBlue, outline=gr.colorBlueD1
+                )
+                gr.draw_paint()
+                time.sleep(2)
+            elif selected_system == "restore.theme":
+                back_path = "/mnt/mmc/anbernic/backup"
+                if not os.path.exists(back_path):
+                    os.mkdir(back_path)
+                back_file = f"{back_path}/Theme_bak.zip"
+                if not os.path.exists(back_file):
+                    gr.draw_log(f"{translator.translate('No backup files found.')} {back_file}", fill=gr.colorBlue,
+                                outline=gr.colorBlueD1)
+                    gr.draw_paint()
+                    time.sleep(2)
+                else:
+                    gr.draw_log(f"{translator.translate('Restoring...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+                    gr.draw_paint()
+                    re_command = f"unzip -oq {back_file} -d /"
+                    subprocess.run(re_command, shell=True, check=True)
+                    gr.draw_log(
+                        f"{translator.translate('Theme restoration successful!')}", fill=gr.colorBlue,
+                        outline=gr.colorBlueD1
+                    )
+                    gr.draw_paint()
+                    time.sleep(2)
+            elif selected_system == "restore.stock":
+                back_path = "/mnt/mmc/anbernic/backup"
+                if not os.path.exists(back_path):
+                    os.mkdir(back_path)
+                back_file = f"{back_path}/Stock_theme_bak.zip"
+                if not os.path.exists(back_file):
+                    gr.draw_log(f"{translator.translate('No backup files found.')} {back_file}", fill=gr.colorBlue,
+                                outline=gr.colorBlueD1)
+                    gr.draw_paint()
+                    time.sleep(2)
+                else:
+                    gr.draw_log(f"{translator.translate('Restoring...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+                    gr.draw_paint()
+                    re_command = f"unzip -oq {back_file} -d /"
+                    subprocess.run(re_command, shell=True, check=True)
+                    gr.draw_log(
+                        f"{translator.translate('Theme restoration successful!')}", fill=gr.colorBlue,
+                        outline=gr.colorBlueD1
+                    )
+                    gr.draw_paint()
+                    time.sleep(2)
             gr.draw_log(
                 f"{translator.translate('Checking file...')}", fill=gr.colorBlue, outline=gr.colorBlueD1
             )
@@ -101,12 +176,12 @@ def load_console_menu() -> None:
             skip_input_check = True
             return
 
+    help_console = help_info.get(selected_position)
     gr.draw_clear()
-
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 110], 15, fill=gr.colorGrayD2, outline=None)
     gr.draw_text((x_size / 2, 20), f"{translator.translate('Themes Manager')} {ver}", 17, anchor="mm")
     gr.draw_help(
-        f"{translator.translate('help_console')}", fill=None, outline=gr.colorBlueD1
+        f"{translator.translate(help_console)}", fill=None, outline=gr.colorBlueD1
     )
 
     if len(available_systems) > 0:
@@ -186,39 +261,19 @@ def load_theme_menu() -> None:
             gr.draw_paint()
             time.sleep(2)
 
-    elif input.key("X"):
-        gr.draw_log(f"{translator.translate('Backing up in progress...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
-        gr.draw_paint()
-        back_path = f"{system_path}/backup"
-        if not os.path.exists(back_path):
-            os.mkdir(back_path)
-        back_file = f"{back_path}/Theme_bak.zip"
-        back_command = f"zip -qr {back_file} /mnt/vendor/res1/*"
-        subprocess.run(back_command, shell=True, check=True)
-        back_command = f"zip -qr {back_file} /mnt/vendor/res2/*"
-        subprocess.run(back_command, shell=True, check=True)
-        gr.draw_log(
-            f"{translator.translate('Theme backup successful!')}", fill=gr.colorBlue, outline=gr.colorBlueD1
-        )
-        gr.draw_paint()
-        time.sleep(2)
-
     elif input.key("Y"):
-        back_file = f"{system_path}/backup/Theme_bak.zip"
-        if not os.path.exists(back_file):
-            gr.draw_log(f"{translator.translate('No backup files found.')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
+        an.switch_sd_storage()
+        New_theme_list = themes.get_themes(an.get_sd_storage_path(), selected_system)
+        if len(New_theme_list) < 1:
+            an.switch_sd_storage()
+            gr.draw_log(
+            f"{translator.translate('No Theme .zip file found.')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
             gr.draw_paint()
             time.sleep(2)
         else:
-            gr.draw_log(f"{translator.translate('Restoring...')}", fill=gr.colorBlue, outline=gr.colorBlueD1)
-            gr.draw_paint()
-            re_command = f"unzip -oq {back_file} -d /"
-            subprocess.run(re_command, shell=True, check=True)
-            gr.draw_log(
-                f"{translator.translate('Theme restoration successful!')}", fill=gr.colorBlue, outline=gr.colorBlueD1
-            )
-            gr.draw_paint()
-            time.sleep(2)
+            selected_position = 0
+            skip_input_check = True
+            return
 
     if exit_menu:
         current_window = "console"
@@ -259,8 +314,7 @@ def load_theme_menu() -> None:
 
     button_circle((20, button_y), "A", f"{translator.translate('Install')}")
     button_circle((120, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((220, button_y), "X", f"{translator.translate('Backup')}")
-    button_circle((400, button_y), "Y", f"{translator.translate('Restore')}")
+    button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
     button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
