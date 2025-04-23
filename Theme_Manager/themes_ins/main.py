@@ -10,7 +10,8 @@ board_mapping = {
     'RG35xxH': 5,
     'RG35xxSP': 6,
     'RG40xxH': 7,
-    'RG40xxV': 8
+    'RG40xxV': 8,
+    'RG35xxPRO': 9
 }
 system_list = ['zh_CN', 'zh_TW', 'en_US', 'ja_JP', 'ko_KR', 'es_LA', 'ru_RU', 'de_DE', 'fr_FR', 'pt_BR']
 
