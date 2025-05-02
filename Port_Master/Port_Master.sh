@@ -88,7 +88,7 @@ other_update() {
     if [ -f "$LEGACY_PORTMASTER_DIR/pugwash.txt" ]; then
         rm -f "$LEGACY_PORTMASTER_DIR/pugwash.txt"
     fi
-    "$program/ports_fix"
+    "$program/port_master/ports_fix"
 }
 
 # Мгновенная проверка интернета (без ожидания)
