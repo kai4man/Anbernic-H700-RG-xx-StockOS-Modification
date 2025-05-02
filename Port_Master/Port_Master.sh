@@ -329,6 +329,10 @@ clean_exit() {
     sudo rm /usr/lib/aarch64-linux-gnu/libGLES*
     sudo ln -s /usr/lib/aarch64-linux-gnu/libmali.so /usr/lib/aarch64-linux-gnu/libEGL.so.1
     sudo ln -s /usr/lib/aarch64-linux-gnu/libmali.so /usr/lib/aarch64-linux-gnu/libGLESv2.so.2
+    #Mire, Super Skelemania
+    sudo cp -f /lib/arm-linux-gnueabihf/libfreetype.so.6 /mnt/vendor/lib/libfreetype.so.6.8.0
+    #Diablo
+    sudo ln -sf /usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0.2800.5 /usr/lib/libSDL2-2.0.so.0
     sudo ldconfig
 
     log "Запуск PortMaster..."
