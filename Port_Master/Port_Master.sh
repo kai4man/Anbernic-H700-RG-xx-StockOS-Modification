@@ -52,6 +52,70 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >&3
 }
 
+# Установка runtimes
+install_runtimes() {
+    log "Установка библиотек runtimes..."
+    
+    # Создаем директорию libs, если её нет
+    mkdir -p "$LEGACY_PORTMASTER_DIR/libs"
+    
+    # Проверяем наличие директории с библиотеками
+    if [ -d "$program/port_master/runtimes" ]; then
+        log "Копирование файлов из директории runtimes..."
+        
+        # Проверка свободного места
+        log "Проверка свободного места на диске..."
+        df_output=$(df -h "$LEGACY_PORTMASTER_DIR" | tail -1)
+        available_space=$(echo "$df_output" | awk '{print $4}')
+        used_percent=$(echo "$df_output" | awk '{print $5}' | tr -d '%')
+        log "Доступное место: $available_space, использовано: $used_percent%"
+        
+        if [ $used_percent -gt 90 ]; then
+            log "ВНИМАНИЕ: Мало свободного места (использовано $used_percent%). Возможны ошибки."
+        fi
+        
+        # Подсчитываем количество файлов для копирования
+        file_count=$(find "$program/port_master/runtimes" -type f | wc -l)
+        log "Найдено файлов для копирования: $file_count"
+        
+        # Выводим список файлов в лог
+        log "Список файлов для копирования:"
+        find "$program/port_master/runtimes" -type f | sort >> "$LOG_FILE" 2>&1
+        
+        # Копируем файлы в целевую директорию
+        log "Копирование файлов в целевую директорию..."
+        cp -rf "$program/port_master/runtimes/"* "$LEGACY_PORTMASTER_DIR/libs/" >> "$LOG_FILE" 2>&1
+        result=$?
+        log "Статус копирования: $result"
+        
+        # Проверяем результат
+        if [ $result -eq 0 ]; then
+            # Выводим список скопированных файлов
+            log "Содержимое директории после копирования:"
+            ls -la "$LEGACY_PORTMASTER_DIR/libs" >> "$LOG_FILE" 2>&1
+            
+            # Устанавливаем права на исполняемые файлы
+            log "Установка прав на исполняемые файлы..."
+            find "$LEGACY_PORTMASTER_DIR/libs" -type f -name "*.sh" -exec chmod +x {} \;
+            find "$LEGACY_PORTMASTER_DIR/libs" -type f -name "*.py" -exec chmod +x {} \;
+            log "Права на исполняемые файлы установлены"
+            
+            # Создаем текстовый файл с отметкой об установке
+            echo "# make by KAI4MAN" > "$program/port_master/install_runtimes.txt"
+            log "Создан файл install_runtimes.txt"
+            
+            log "Библиотеки runtimes успешно установлены"
+            return 0
+        else
+            log "Ошибка копирования файлов!"
+            return 1
+        fi
+    else
+        log "Директория runtimes не найдена: $program/port_master/runtimes"
+        return 1
+    fi
+}
+
 # Автоматические настройки языка
 auto_set_lang() {
     [ -f "$LANG_FILE" ] || return 0  # Если файла нет - ничего не делаем
@@ -408,6 +472,11 @@ update_portmaster() {
     
     # Обновление конфигурации
     check_and_update_config || log "Предупреждение: проблемы с конфигурацией"
+    
+    # Проверка наличия флага установки runtimes и запуск, если его нет
+    if [ ! -f "$program/port_master/install_runtimes.txt" ] || ! grep -q "# make by KAI4MAN" "$program/port_master/install_runtimes.txt"; then
+        install_runtimes || log "Предупреждение: проблемы с установкой runtimes"
+    fi
     
     log "Установка прав..."
     chmod +x "$LEGACY_PORTMASTER_DIR"/PortMaster.sh
