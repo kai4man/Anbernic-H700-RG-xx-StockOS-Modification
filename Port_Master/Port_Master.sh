@@ -9,6 +9,7 @@ program="$(cd $(dirname "$0"); pwd)"
 # URL для загрузки и информации о версии
 GITHUB_API_URL="https://api.github.com/repos/PortsMaster/PortMaster-GUI/releases/latest"
 GITHUB_DOWNLOAD_URL="https://github.com/PortsMaster/PortMaster-GUI/releases/latest/download/PortMaster.zip"
+RUNTIMES_API_URL="https://api.github.com/repos/kai4man/Anbernic-H700-RG-xx-StockOS-Modification-PM-runtimes/releases/latest"
 
 # Параметры языка
 sys_lang=(zh_CN zh_CN en_US ja_JP ko_KR es_ES ru_RU de_DE fr_FR pt_BR)
@@ -52,6 +53,164 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >&3
 }
 
+# Установка runtimes
+install_runtimes() {
+    log "Проверка рантаймов..."
+    
+    # Создаем директорию port_master, если она не существует
+    mkdir -p "$program/port_master"
+    
+    # Проверяем наличие файла с версией
+    local runtime_version_file="$program/port_master/install_runtimes.txt"
+    local current_version=""
+    
+    if [ -f "$runtime_version_file" ] && grep -q "# make by KAI4MAN" "$runtime_version_file"; then
+        current_version=$(grep "version:" "$runtime_version_file" | cut -d ":" -f 2 | tr -d ' ')
+        log "Найдена установленная версия рантаймов: $current_version"
+    else
+        log "Файл версии не найден или имеет неверный формат, требуется установка"
+    fi
+    
+    # Получаем информацию о последней версии
+    log "Получение информации о последней версии рантаймов..."
+    local release_info
+    local latest_version=""
+    
+    if command -v curl >/dev/null 2>&1; then
+        release_info=$(curl -s --connect-timeout 5 "$RUNTIMES_API_URL")
+    elif command -v wget >/dev/null 2>&1; then
+        release_info=$(wget -qO- --timeout=5 "$RUNTIMES_API_URL")
+    else
+        release_info=$(python3 -c "
+import urllib.request, json, sys
+try:
+    with urllib.request.urlopen('$RUNTIMES_API_URL', timeout=5) as response:
+        print(response.read().decode())
+except:
+    sys.exit(1)
+" 2>/dev/null)
+    fi
+    
+    # Извлекаем тег и получаем список файлов
+    latest_version=$(echo "$release_info" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    if [ -z "$latest_version" ]; then
+        log "Не удалось получить информацию о последней версии рантаймов"
+        if [ -z "$current_version" ]; then
+            log "Рантаймы не установлены и не удалось получить информацию с GitHub. Невозможно продолжить."
+            return 1
+        fi
+        return 0
+    fi
+    
+    log "Последняя доступная версия рантаймов: $latest_version"
+    
+    # Сравниваем текущую и последнюю версию
+    if [ "$current_version" = "$latest_version" ]; then
+        log "Версия рантаймов актуальна ($latest_version)"
+        return 0
+    fi
+    
+    log "Требуется обновление рантаймов: $current_version -> $latest_version"
+    
+    # Создаем временную директорию и директорию для рантаймов
+    local temp_dir="/tmp/PortMaster_Runtime_Update"
+    local libs_dir="$LEGACY_PORTMASTER_DIR/libs"
+    
+    # Очистка предыдущих файлов
+    rm -rf "$temp_dir"
+    mkdir -p "$temp_dir"
+    mkdir -p "$libs_dir"
+    
+    # Получаем список всех файлов для скачивания
+    local download_urls=$(echo "$release_info" | grep -o '"browser_download_url": *"[^"]*"' | cut -d'"' -f4)
+    
+    # Проверяем, есть ли файлы для скачивания
+    if [ -z "$download_urls" ]; then
+        log "Не найдены файлы для скачивания в релизе рантаймов"
+        if [ -z "$current_version" ]; then
+            return 1
+        fi
+        return 0
+    fi
+    
+    log "Найдено $(echo "$download_urls" | wc -l) файлов рантаймов для скачивания"
+    
+    # Скачивание файлов рантаймов по одному
+    log "Скачивание файлов рантаймов..."
+    
+    # Временный файл для хранения счетчика успешных скачиваний
+    local temp_counter="/tmp/runtime_download_counter"
+    echo "0" > "$temp_counter"
+    
+    # Перебираем все URL и скачиваем файлы
+    for url in $(echo "$download_urls"); do
+        # Получаем имя файла из URL
+        filename=$(basename "$url")
+        log "Скачивание: $filename"
+        
+        # Скачиваем файл
+        if wget -q --timeout=30 --tries=3 --show-progress "$url" -O "$temp_dir/$filename"; then
+            # Проверка размера скачанного файла
+            local file_size=$(stat -c%s "$temp_dir/$filename" 2>/dev/null || stat -f%z "$temp_dir/$filename" 2>/dev/null)
+            if [ -n "$file_size" ] && [ "$file_size" -gt 1000 ]; then
+                log "Успешно скачан: $filename ($file_size байт)"
+                # Увеличиваем счетчик успешных загрузок
+                count=$(cat "$temp_counter")
+                echo $((count + 1)) > "$temp_counter"
+            else
+                log "Файл $filename слишком мал или пуст ($file_size байт), пропускаем"
+                rm -f "$temp_dir/$filename"
+            fi
+        else
+            log "Ошибка скачивания: $filename"
+        fi
+    done
+    
+    # Получаем итоговое количество скачанных файлов
+    local success_count=$(cat "$temp_counter")
+    rm -f "$temp_counter"
+    
+    # Подсчитываем, сколько файлов фактически есть в директории
+    local actual_count=$(ls -1 "$temp_dir" | wc -l)
+    
+    # Проверяем результаты загрузки
+    if [ "$actual_count" -eq 0 ]; then
+        log "Не удалось скачать ни один файл рантаймов!"
+        rm -rf "$temp_dir"
+        if [ -z "$current_version" ]; then
+            return 1
+        fi
+        return 0
+    fi
+    
+    log "Скачано файлов: $actual_count из $(echo "$download_urls" | wc -l)"
+    
+    # Копирование файлов
+    log "Установка файлов рантаймов..."
+    mkdir -p "$libs_dir"
+    if ! cp -rf "$temp_dir"/* "$libs_dir"/; then
+        log "Ошибка копирования файлов рантаймов!"
+        rm -rf "$temp_dir"
+        if [ -z "$current_version" ]; then
+            return 1
+        fi
+        return 0
+    fi
+    
+    # Создаем файл с информацией о версии
+    echo "# make by KAI4MAN" > "$runtime_version_file"
+    echo "version: $latest_version" >> "$runtime_version_file"
+    echo "date: $(date '+%Y-%m-%d %H:%M:%S')" >> "$runtime_version_file"
+    echo "files_count: $actual_count" >> "$runtime_version_file"
+    
+    # Очистка
+    rm -rf "$temp_dir"
+    
+    log "Рантаймы успешно установлены (версия $latest_version, $actual_count файлов)"
+    return 0
+}
+
 # Автоматические настройки языка
 auto_set_lang() {
     [ -f "$LANG_FILE" ] || return 0  # Если файла нет - ничего не делаем
@@ -88,7 +247,7 @@ other_update() {
     if [ -f "$LEGACY_PORTMASTER_DIR/pugwash.txt" ]; then
         rm -f "$LEGACY_PORTMASTER_DIR/pugwash.txt"
     fi
-    "$program/ports_fix"
+    "$program/port_master/ports_fix"
 }
 
 # Мгновенная проверка интернета (без ожидания)
@@ -281,38 +440,42 @@ check_and_update_hardware() {
 
 # Получение последней версии с GitHub (только если есть интернет)
 get_latest_version() {
+    local api_url=${1:-"$GITHUB_API_URL"}
+    local version_var_name=${2:-"LATEST_VERSION"}
+    
     if ! check_internet; then
         log "Интернет недоступен, пропускаем проверку обновлений"
         return 1
     fi
     
-    log "Получение информации о последней версии..."
+    log "Получение информации о последней версии из $api_url..."
     
     local version_info
     if command -v curl >/dev/null 2>&1; then
-        version_info=$(curl -s --connect-timeout 3 "$GITHUB_API_URL")
+        version_info=$(curl -s --connect-timeout 3 "$api_url")
     elif command -v wget >/dev/null 2>&1; then
-        version_info=$(wget -qO- --timeout=3 "$GITHUB_API_URL")
+        version_info=$(wget -qO- --timeout=3 "$api_url")
     else
         version_info=$(python3 -c "
 import urllib.request, json, sys
 try:
-    with urllib.request.urlopen('$GITHUB_API_URL', timeout=3) as response:
+    with urllib.request.urlopen('$api_url', timeout=3) as response:
         print(response.read().decode())
 except:
     sys.exit(1)
 " 2>/dev/null)
     fi
     
-    LATEST_VERSION=$(echo "$version_info" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    local latest_version=$(echo "$version_info" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
-    if [ -z "$LATEST_VERSION" ]; then
+    if [ -z "$latest_version" ]; then
         log "Не удалось получить информацию о версии"
         return 1
     fi
     
-    log "Последняя версия на GitHub: $LATEST_VERSION"
-    echo "$LATEST_VERSION"
+    log "Последняя версия на GitHub: $latest_version"
+    eval "$version_var_name=\"$latest_version\""
+    echo "$latest_version"
     return 0
 }
 
@@ -329,6 +492,10 @@ clean_exit() {
     sudo rm /usr/lib/aarch64-linux-gnu/libGLES*
     sudo ln -s /usr/lib/aarch64-linux-gnu/libmali.so /usr/lib/aarch64-linux-gnu/libEGL.so.1
     sudo ln -s /usr/lib/aarch64-linux-gnu/libmali.so /usr/lib/aarch64-linux-gnu/libGLESv2.so.2
+    #Mire, Super Skelemania
+    sudo cp -f /lib/arm-linux-gnueabihf/libfreetype.so.6 /mnt/vendor/lib/libfreetype.so.6.8.0
+    #Diablo
+    sudo ln -sf /usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0.2800.5 /usr/lib/libSDL2-2.0.so.0
     sudo ldconfig
 
     log "Запуск PortMaster..."
@@ -338,11 +505,13 @@ clean_exit() {
 
 # Проверка версии
 check_version() {
-    local version_file="$LEGACY_PORTMASTER_DIR/version"
+    local version_file="$1"
+    local latest_version="$2"
+    
     [ -f "$version_file" ] || return 0  # Нет файла версии - требуется обновление
     
     local current_version=$(cat "$version_file" 2>/dev/null | tr -d '\n\r')
-    [ "$current_version" != "$LATEST_VERSION" ] && return 0  # Версии не совпадают
+    [ "$current_version" != "$latest_version" ] && return 0  # Версии не совпадают
     
     return 1  # Версии совпадают
 }
@@ -430,16 +599,26 @@ auto_set_lang || log "Ошибка настройки языка"
 other_update || log "Другие ошибки обновления"
 
 # Пытаемся получить последнюю версию (если есть интернет)
-if LATEST_VERSION=$(get_latest_version); then
-    if check_version; then
+if LATEST_VERSION=$(get_latest_version "$GITHUB_API_URL" "LATEST_VERSION"); then
+    if check_version "$LEGACY_PORTMASTER_DIR/version" "$LATEST_VERSION"; then
         if update_portmaster; then
-            clean_exit 0 "Успешно обновлено до $LATEST_VERSION" "$@"
+            log "Успешно обновлено до $LATEST_VERSION"
         else
-            clean_exit 0 "Ошибка обновления, запуск текущей версии" "$@"
+            log "Ошибка обновления, запуск текущей версии"
         fi
     else
-        clean_exit 0 "Версия актуальна ($LATEST_VERSION), запуск" "$@"
+        log "Версия актуальна ($LATEST_VERSION)"
     fi
 else
-    clean_exit 0 "Интернет недоступен, запуск текущей версии" "$@"
+    log "Интернет недоступен, пропускаем проверку обновлений"
 fi
+
+# Проверяем и обновляем рантаймы только если есть интернет
+if check_internet; then
+    install_runtimes || log "Предупреждение: проблемы с установкой/обновлением рантаймов"
+else
+    log "Интернет недоступен, пропускаем проверку рантаймов"
+fi
+
+# Запускаем PortMaster
+clean_exit 0 "Запуск PortMaster..." "$@"
