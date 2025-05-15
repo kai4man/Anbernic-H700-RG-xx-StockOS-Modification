@@ -33,7 +33,7 @@ https://github.com/cbepx-me/RG35xx-P-RG35xx-H-Modification/wiki
 - RG28xx, RG34xx, RG34xx SP, RGcubexx:
 
 https://drive.google.com/drive/folders/1zTtl8n5zpaRsxwIX7ncG-7sgwzf5Aym-?usp=sharing
-- RG35xx 2024, RG35xx PLUS, RG35xx H, RG35xx SP, RG40xx H, RG40xx V:
+- RG35xx PLUS (RG35xx 2024), RG35xx H, RG35xx SP, RG40xx H, RG40xx V:
 
 https://drive.google.com/drive/folders/1ilDbBQP8XB4IVQfhnxde8Diu0fQdDPI9?usp=sharing
 
