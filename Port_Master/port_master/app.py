@@ -91,12 +91,20 @@ def start() -> None:
     clean_exit(*sys.argv[1:])
 
 def is_connected():
-    try:
-        sock = socket.create_connection(("8.8.8.8", 53), timeout=3)
-        sock.close()
-        return True
-    except (socket.timeout, socket.error):
-        return False
+    test_servers = [
+        ("8.8.8.8", 53),  # google
+        ("1.1.1.1", 53),       # NTP DNS
+        ("223.5.5.5", 53),       # ali DNS
+        ("220.181.38.148", 80)   # baidu
+    ]
+    for host, port in test_servers:
+        try:
+            sock = socket.create_connection((host, port), timeout=3)
+            sock.close()
+            return True
+        except (socket.timeout, socket.error):
+            continue
+    return False
     
 def exit_program(error_message: str = "", time_sleep: int = 0) -> None:
     if error_message:
