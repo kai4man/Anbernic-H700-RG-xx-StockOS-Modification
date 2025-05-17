@@ -89,6 +89,9 @@ def start() -> None:
     if not other_update():
         logger.error("Другие ошибки обновления")
 
+    if not set_portmaster_language():
+        logger.error("Ошибка установки языка портмастера")
+
     clean_exit(*sys.argv[1:])
 
 def is_connected():
@@ -1143,6 +1146,64 @@ PATH="$OLD_PATH"
     except Exception as e:
         logger.error(f"Ошибка в ports_fix: {e}")
         return False
+
+def set_portmaster_language():
+    LANG_FILE = os.path.join(LEGACY_PORTMASTER_DIR, "config", "config.json")
+
+    try:
+        if system_lang == 'zh_TW':
+            set_lang = 'zh_CN'
+        else:
+            set_lang = system_lang
+
+        if not os.path.exists(LANG_FILE):
+            logger.info("Файл конфигурации не существует, никаких действий не требуется.")
+            return 0
+        
+        if not os.access(LANG_FILE, os.R_OK | os.W_OK):
+            logger.error(f"Отсутствуют права доступа к файлу: {LANG_FILE}")
+
+        with open(LANG_FILE, 'r') as f:
+            try:
+                config_data = json.load(f)
+            except json.JSONDecodeError as e:
+                logger.error(f"Неверный формат JSON: {str(e)}")
+
+        modified = False
+        
+        if 'language' in config_data:
+            if config_data['language'] != set_lang:
+                config_data['language'] = set_lang
+                modified = True
+                
+        else:
+            config_data['language'] = set_lang
+            modified = True
+
+        if modified:
+            temp_fd, temp_path = tempfile.mkstemp(
+                dir=os.path.dirname(LANG_FILE),
+                suffix='.tmp',
+                text=True
+            )
+            
+            try:
+                with os.fdopen(temp_fd, 'w') as temp_file:
+                    json.dump(config_data, temp_file, indent=4, ensure_ascii=False)
+                
+                shutil.move(temp_path, LANG_FILE)
+                logger.info("Настройки языка успешно обновлены")
+                
+            except Exception as e:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                logger.error(f"Запись не удалась: {str(e)}")
+
+        return 0
+
+    except Exception as e:
+        logger.error(f"Ошибка: {str(e)}")
+        return 1
 
 def update() -> None:
     global selected_position, skip_input_check
