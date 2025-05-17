@@ -19,6 +19,7 @@ import urllib.request
 import zipfile
 import stat
 import logging
+import glob
 
 program = os.path.dirname(os.path.abspath(__file__))
 
@@ -436,10 +437,12 @@ def clean_exit(*args):
 
     try:
         logger.info("Настройка библиотек...")
-        subprocess.run(["sudo", "rm", "-f", "/usr/lib/aarch64-linux-gnu/libEGL.so*"], check=True)
-        subprocess.run(["sudo", "rm", "-f", "/usr/lib/aarch64-linux-gnu/libGLES*"], check=True)
-        subprocess.run(["sudo", "ln", "-s", "/usr/lib/aarch64-linux-gnu/libmali.so", "/usr/lib/aarch64-linux-gnu/libEGL.so.1"], check=True)
-        subprocess.run(["sudo", "ln", "-s", "/usr/lib/aarch64-linux-gnu/libmali.so", "/usr/lib/aarch64-linux-gnu/libGLESv2.so.2"], check=True)
+        for path in glob.glob('/usr/lib/aarch64-linux-gnu/libEGL.so*'):
+            subprocess.run(["sudo", "rm", "-f", path], check=True)
+        for path in glob.glob('/usr/lib/aarch64-linux-gnu/libGLES*'):
+            subprocess.run(["sudo", "rm", "-f", path], check=True)
+        subprocess.run(["sudo", "ln", "-sf", "/usr/lib/libmali.so", "/usr/lib/aarch64-linux-gnu/libEGL.so.1"], check=True)
+        subprocess.run(["sudo", "ln", "-sf", "/usr/lib/libmali.so", "/usr/lib/aarch64-linux-gnu/libGLESv2.so.2"], check=True)
         subprocess.run(["sudo", "cp", "-f", "/lib/arm-linux-gnueabihf/libfreetype.so.6", "/mnt/vendor/lib/libfreetype.so.6.8.0"], check=True)
         subprocess.run(["sudo", "ln", "-sf", "/usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0.2800.5", "/usr/lib/libSDL2-2.0.so.0"], check=True)
         subprocess.run(["sudo", "ldconfig"], check=True)
