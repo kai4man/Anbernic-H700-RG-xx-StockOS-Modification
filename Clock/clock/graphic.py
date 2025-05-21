@@ -30,6 +30,9 @@ colorGrayL1 = "#383838"
 colorGrayD2 = "#141414"
 colorGreen = "#00ff00"
 colorRed = "#0202cb"
+colorYellow = "#00D7FF"  # 天气信息主色
+colorGrayL2 = "#FFD700"  # 次要信息颜色
+colorRed = "#4444FF"     # 错误提示颜色
 
 activeImage: Image.Image
 activeDraw: ImageDraw.ImageDraw
