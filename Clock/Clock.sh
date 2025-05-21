@@ -1,6 +1,5 @@
 #!/bin/bash
 
-. /mnt/mod/ctrl/configs/functions &>/dev/null 2>&1
 progdir="$(cd $(dirname "$0") || exit; pwd)"/clock
 
 program="python3 ${progdir}/main.py"
