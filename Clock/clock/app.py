@@ -4,6 +4,7 @@ from language import Translator
 import graphic as gr
 import input
 import sys
+from weather import weather
 import threading
 import datetime
 import time
@@ -113,14 +114,54 @@ def handle_clock_input() -> None:
     input.reset_input()
     thread = threading.Thread(target=input.check)
     thread.start()
+    
+    weather_font = 18 if hw_info in [2,3] else 20
+    info_spacing = 28
+    
     while True:
         now = datetime.datetime.now()
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M:%S")
+        weather_data, city = weather.get_weather()
+        
         gr.draw_clear()
-        gr.draw_text((x_pos, y_pos - 100), current_date, clock=1, font=50, color=gr.colorGreen, anchor="mm")
-        gr.draw_text((x_time_pos, y_pos + 20), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
+        
+        gr.draw_text((x_pos, y_pos - 80), current_date, clock=1, font=40, color=gr.colorGreen, anchor="mm")
+        
+        gr.draw_text((x_time_pos, y_pos), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
+        
+        weather_x = 20
+        weather_y = 50
+        if weather_data:
+            cond_info = weather_data['condition']
+            info_lines1 = [
+                f"{translator.translate('TEMP')}: {weather_data['temp']}",
+                f"{translator.translate('HUMIDITY')}: {weather_data['humidity']}%",
+                f"{translator.translate('CONDITION')}: {translator.translate(cond_info)}"
+            ]
+            info_lines2 = f"({city} @ {weather_data['updated']})"
+        else:
+            info_lines1 = [translator.translate("FETCHING")]
+            info_lines2 = [translator.translate("Unknown")]
+        
+        for idx, line in enumerate(info_lines1):
+            color = gr.colorYellow if idx < 3 else gr.colorGrayL2
+            gr.draw_text(
+                (weather_x, weather_y + idx*info_spacing),
+                line,
+                font=weather_font,
+                color=color,
+                anchor="lm"
+            )
+        gr.draw_text(
+                (weather_x, y_size - 60),
+                info_lines2,
+                font=weather_font,
+                color=gr.colorGrayL2,
+                anchor="lm"
+            )
         gr.draw_paint()
+        
         if input.slide_key():
             current_window = "console"
             skip_input_check = True
@@ -252,7 +293,7 @@ def handle_timer_input() -> None:
         elif countdown_finished:
             try:
                 if end_time == "Vibrate":
-                    subprocess.run("for i in 1 2 3; do echo 1 > /sys/class/power_supply/axp2202-battery/moto && sleep 0.3 && echo 0 > /sys/class/power_supply/axp2202-battery/moto && sleep 0.1; done", shell=True, check=True)
+                    subprocess.run("echo 1 > /sys/class/power_supply/axp2202-battery/moto && sleep 0.3 && echo 0 > /sys/class/power_supply/axp2202-battery/moto && sleep 0.1", shell=True, check=True)
                 else:
                     subprocess.run(["aplay", clock_sound_file], check=True)
             except subprocess.CalledProcessError as e:
