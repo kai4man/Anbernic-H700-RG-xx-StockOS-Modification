@@ -1,4 +1,5 @@
-import requests
+import urllib.request
+import json
 import time
 import threading
 from datetime import datetime
@@ -12,11 +13,11 @@ class WeatherManager:
 
     def _get_location(self):
         try:
-            res = requests.get('http://ip-api.com/json/?fields=status,city', timeout=3)
-            if res.status_code == 200:
-                data = res.json()
-                if data.get('status') == 'success':
-                    return data['city']
+            with urllib.request.urlopen('http://ip-api.com/json/?fields=status,city', timeout=3) as res:
+                if res.status == 200:
+                    data = json.loads(res.read().decode())
+                    if data.get('status') == 'success':
+                        return data['city']
         except Exception as e:
             print(f"[Weather] Location error: {str(e)}")
         return None
@@ -24,15 +25,17 @@ class WeatherManager:
     def _get_weather(self, city):
         try:
             url = f'http://wttr.in/{city}?format=%t+%h+%C'
-            res = requests.get(url, timeout=5)
-            if res.status_code == 200:
-                temp, humidity, condition = res.text.strip().split(' ')
-                return {
-                    'temp': temp,
-                    'humidity': humidity.rstrip('%'),
-                    'condition': condition,
-                    'updated': datetime.now().strftime("%H:%M")
-                }
+            with urllib.request.urlopen(url, timeout=5) as res:
+                if res.status == 200:
+                    data = res.read().decode().strip().split(' ')
+                    if len(data) == 3:
+                        temp, humidity, condition = data
+                        return {
+                            'temp': temp,
+                            'humidity': humidity.rstrip('%'),
+                            'condition': condition,
+                            'updated': datetime.now().strftime("%H:%M")
+                        }
         except Exception as e:
             print(f"[Weather] API error: {str(e)}")
         return None
@@ -50,8 +53,8 @@ class WeatherManager:
                             'data': weather_data,
                             'city': city
                         }
-            except:
-                pass
+            except Exception as e:
+                print(f"[Weather] Update error: {str(e)}")
             time.sleep(300)  # 5分钟更新一次
 
     def get_weather(self):
