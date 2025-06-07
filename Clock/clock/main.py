@@ -15,6 +15,7 @@ board_mapping = {
 
 }
 system_list = ['zh_CN', 'zh_TW', 'en_US', 'ja_JP', 'ko_KR', 'es_LA', 'ru_RU', 'de_DE', 'fr_FR', 'pt_BR']
+lang_list = ['zh-cn', 'zh-tw', 'en', 'ja', 'ko', 'es', 'ru', 'de', 'fr', 'pt']
 
 try:
     board_info = Path("/mnt/vendor/oem/board.ini").read_text().splitlines()[0]
@@ -26,8 +27,9 @@ try:
 except (FileNotFoundError, IndexError):
     lang_info = 2
 
-hw_info = board_mapping.get(board_info, 0)
+hw_info = board_mapping.get(board_info, 5)
 system_lang = system_list[int(lang_info)]
+lang = lang_list[int(lang_info)]
 
 
 def main():
