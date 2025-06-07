@@ -163,7 +163,8 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
     current_line = ""
     for word in text.split():
         test_line = f"{current_line} {word}".strip() if current_line else word
-        test_width = font_obj.getsize(test_line)[0]
+        bbox = font_obj.getbbox(test_line)
+        test_width = bbox[2] - bbox[0]
         
         if test_width <= max_width:
             current_line = test_line
@@ -172,7 +173,8 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
                 lines.append(current_line)
                 current_line = ""
             
-            word_width = font_obj.getsize(word)[0]
+            bbox = font_obj.getbbox(word)
+            word_width = bbox[2] - bbox[0]
             if word_width <= max_width:
                 current_line = word
             else:
@@ -181,7 +183,9 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
                     substring = ""
                     for char in remaining:
                         temp_sub = substring + char
-                        if font_obj.getsize(temp_sub)[0] <= max_width:
+                        bbox = font_obj.getbbox(temp_sub)
+                        temp_width = bbox[2] - bbox[0]
+                        if temp_width <= max_width:
                             substring = temp_sub
                         else:
                             break
@@ -193,7 +197,8 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
     if current_line:
         lines.append(current_line)
 
-    line_height = font_obj.getsize("A")[1]
+    bbox = font_obj.getbbox("A")
+    line_height = bbox[3] - bbox[1]
     total_height = len(lines) * line_height
     start_y = y + (rect_height - total_height) // 2
 
@@ -207,7 +212,8 @@ def get_text_width(text, font):
     image = Image.new('RGB', (1, 1))
     draw = ImageDraw.Draw(image)
     font_obj = ImageFont.truetype(clock_font_file, font)
-    width, _ = draw.textsize(text, font=font_obj)
+    bbox = draw.textbbox((0, 0), text, font=font_obj)
+    width = bbox[2] - bbox[0]
     return width
 
 
