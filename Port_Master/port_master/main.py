@@ -25,7 +25,7 @@ try:
 except (FileNotFoundError, IndexError):
     lang_info = 2
 
-hw_info = board_mapping.get(board_info, 0)
+hw_info = board_mapping.get(board_info, 5)
 system_lang = system_list[int(lang_info)]
 
 
