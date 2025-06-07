@@ -123,11 +123,8 @@ def handle_clock_input() -> None:
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M:%S")
         weather_data, city = weather.get_weather()
-        
         gr.draw_clear()
-        
         gr.draw_text((x_pos, y_pos - 80), current_date, clock=1, font=40, color=gr.colorGreen, anchor="mm")
-        
         gr.draw_text((x_time_pos, y_pos), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
         
         weather_x = 20
@@ -142,7 +139,7 @@ def handle_clock_input() -> None:
             info_lines2 = f"({city} @ {weather_data['updated']})"
         else:
             info_lines1 = [translator.translate("FETCHING")]
-            info_lines2 = [translator.translate("Unknown")]
+            info_lines2 = translator.translate("Unknown")
         
         for idx, line in enumerate(info_lines1):
             color = gr.colorYellow if idx < 3 else gr.colorGrayL2
@@ -154,7 +151,7 @@ def handle_clock_input() -> None:
                 anchor="lm"
             )
         gr.draw_text(
-                (weather_x, y_size - 60),
+                (weather_x, weather_y + idx*info_spacing + info_spacing),
                 info_lines2,
                 font=weather_font,
                 color=gr.colorGrayL2,
