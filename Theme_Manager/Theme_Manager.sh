@@ -1,6 +1,5 @@
 #!/bin/bash
 
-. /mnt/mod/ctrl/configs/functions &>/dev/null 2>&1
 progdir="$(cd $(dirname "$0") || exit; pwd)"/themes_ins
 
 [ ! -f /usr/bin/zip ] && cp -f "$progdir"/zip /usr/bin && chmod 777 /usr/bin/zip
