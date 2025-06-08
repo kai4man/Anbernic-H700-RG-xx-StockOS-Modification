@@ -1,5 +1,3 @@
-from pathlib import Path
-from typing import List, Optional
 from main import hw_info, system_lang
 from graphic import screen_resolutions
 from language import Translator
@@ -8,16 +6,13 @@ import input
 import sys
 import time
 import socket
-from PIL import Image
 import os
-import re
 import json
 import shutil
 import subprocess
 import tempfile
 import urllib.request
 import zipfile
-import stat
 import logging
 import glob
 
@@ -44,6 +39,7 @@ skip_input_check = False
 fix_flg_k4m="make by KAI4MAN"
 fix_flg_grh="make by G.R.H"
 port_master_github_version = f"#{fix_flg_k4m}"
+current_version = ""
 
 log_dir = os.path.join(program, "logs")
 os.makedirs(log_dir, exist_ok=True)
@@ -472,13 +468,13 @@ def clean_exit(*args):
 
 def check_port_master_version() -> bool:
     port_master_version = os.path.join(LEGACY_PORTMASTER_DIR, "version")
-    
+
     try:
 
         socket.setdefaulttimeout(10)
         with urllib.request.urlopen(GITHUB_API_URL) as response:
             release_info = json.loads(response.read().decode())
-            global port_master_github_version
+            global port_master_github_version, current_version
             port_master_github_version = release_info.get("tag_name", "")
             logger.info(f"Получена версия с GitHub: {port_master_github_version}")
         
@@ -503,11 +499,12 @@ def check_port_master_version() -> bool:
         return True
     
 def load_screen_show_update_prompt() -> bool:
-    global selected_position, selected_system, skip_input_check
+    global selected_position, selected_system, skip_input_check, current_version
 
     gr.draw_clear()
     gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('New version of PortMaster is available'), font=17, anchor="mm")
-    gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Do you want to update?'), font=13, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2 - 30), f"{current_version} → {port_master_github_version}", font=13, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2), translator.translate('Do you want to update?'), font=13, anchor="mm")
     button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
     button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
     
