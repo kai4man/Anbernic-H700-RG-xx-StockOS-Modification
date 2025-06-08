@@ -482,6 +482,8 @@ def check_port_master_version() -> bool:
             logger.error("Не удалось получить версию с GitHub")
             return True
             
+        if not os.path.exists(LEGACY_PORTMASTER_DIR):
+            os.mkdir(LEGACY_PORTMASTER_DIR)
         if not os.path.exists(port_master_version):
             return False
             
