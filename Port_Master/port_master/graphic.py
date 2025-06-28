@@ -15,13 +15,11 @@ screen_resolutions = {
 screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
-fb_screeninfo = None
 
-fontFile = {}
-fontFile[17] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17)
-fontFile[15] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15)
-fontFile[13] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13)
-fontFile[11] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)
+fontFile = {17: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17),
+            15: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15),
+            13: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13),
+            11: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)}
 colorBlue = "#bb7200"
 colorBlueD1 = "#7f4f00"
 colorGray = "#292929"

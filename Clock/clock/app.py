@@ -124,8 +124,8 @@ def handle_clock_input() -> None:
         current_time = now.strftime("%H:%M:%S")
         weather_data, city = weather.get_weather()
         gr.draw_clear()
-        gr.draw_text((x_pos, y_pos - 80), current_date, clock=1, font=40, color=gr.colorGreen, anchor="mm")
-        gr.draw_text((x_time_pos, y_pos), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
+        gr.draw_text((x_pos, y_pos - 60), current_date, clock=1, font=40, color=gr.colorGreen, anchor="mm")
+        gr.draw_text((x_time_pos, y_pos + 20), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
         
         weather_x = 20
         weather_y = 50
@@ -151,7 +151,7 @@ def handle_clock_input() -> None:
                 anchor="lm"
             )
         gr.draw_text(
-                (weather_x, weather_y + idx*info_spacing + info_spacing),
+                (weather_x, y_size - 60),
                 info_lines2,
                 font=weather_font,
                 color=gr.colorGrayL2,

@@ -263,8 +263,8 @@ def load_theme_menu() -> None:
 
     elif input.key("Y"):
         an.switch_sd_storage()
-        New_theme_list = themes.get_themes(an.get_sd_storage_path(), selected_system)
-        if len(New_theme_list) < 1:
+        new_theme_list = themes.get_themes(an.get_sd_storage_path(), selected_system)
+        if len(new_theme_list) < 1:
             an.switch_sd_storage()
             gr.draw_log(
             f"{translator.translate('No Theme .zip file found.')}", fill=gr.colorBlue, outline=gr.colorBlueD1)

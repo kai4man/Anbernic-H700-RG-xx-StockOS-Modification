@@ -47,3 +47,4 @@ class Bezels:
                 available_systems.append(system)
 
         return available_systems
+

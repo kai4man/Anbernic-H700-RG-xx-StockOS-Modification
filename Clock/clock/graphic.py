@@ -32,7 +32,6 @@ colorGreen = "#00ff00"
 colorRed = "#0202cb"
 colorYellow = "#00D7FF"  # 天气信息主色
 colorGrayL2 = "#FFD700"  # 次要信息颜色
-colorRed = "#4444FF"     # 错误提示颜色
 
 activeImage: Image.Image
 activeDraw: ImageDraw.ImageDraw
@@ -197,14 +196,14 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
     if current_line:
         lines.append(current_line)
 
-    bbox = font_obj.getbbox("A")
-    line_height = bbox[3] - bbox[1]
+    ascent, descent = font_obj.getmetrics()
+    line_height = int((ascent + descent) * 1.2)
     total_height = len(lines) * line_height
     start_y = y + (rect_height - total_height) // 2
 
     for i, line in enumerate(lines):
         text_x = x + width / 2
-        text_y = start_y + i * line_height + 10
+        text_y = start_y + i * line_height + ascent
         draw_text((text_x, text_y), line, font, anchor="mm")
 
 
