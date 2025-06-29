@@ -196,7 +196,7 @@ def draw_log(text, fill="Black", outline="black", width=500, font=15):
 
     for i, line in enumerate(lines):
         text_x = x + width / 2
-        text_y = start_y + i * line_height + ascent
+        text_y = start_y + i * line_height + ascent - 5
         draw_text((text_x, text_y), line, font, anchor="mm")
 
 
