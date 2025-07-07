@@ -12,6 +12,7 @@ Stock OS Modification is a project built on the StockOS of Anbernic, which is en
 - RGcube XX
 - RG34xx
 - RG34xx SP
+- RG35xx PRO
 
 ## Include content
 
