@@ -941,7 +941,7 @@ directory="mnt/$(echo "$SH_DIR" | cut -d '/' -f3)/Roms"
 
 DSIPLAY_ID="$(cat /sys/class/power_supply/axp2202-battery/display_id)"
 if [[ $DSIPLAY_ID == "1" ]]; then
-  AUDIODEV=hw:2,0
+  export AUDIODEV=hw:2,0
 else
   if [ -f "/roms/lib64/libSDL2-2.0.so.0.2800.6" ]; then
     LD_PRELOAD=/roms/lib64/libSDL2-2.0.so.0.2800.6
@@ -1042,7 +1042,7 @@ fi
 export HOME="/root"
 DSIPLAY_ID="$(cat /sys/class/power_supply/axp2202-battery/display_id)"
 if [[ $DSIPLAY_ID == "1" ]]; then
-  AUDIODEV=hw:2,0
+  export AUDIODEV=hw:2,0
 else
   if [ -f "/roms/lib64/libSDL2-2.0.so.0.2800.6" ]; then
     LD_PRELOAD=/roms/lib64/libSDL2-2.0.so.0.2800.6
