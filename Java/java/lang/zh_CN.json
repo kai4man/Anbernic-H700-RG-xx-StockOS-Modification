@@ -1,0 +1,10 @@
+{
+  "Select": "选择",
+  "Exit": "退出",
+  "No internet connection": "未发现有效的网络连接, \n请联网后再试一次...",
+  "JAVA not found. Requires loading": "未找到 JAVA。需要下载。",
+  "Downloading JAVA": "正在下载 JAVA",
+  "Unpacking JAVA": "正在解压 JAVA",
+  "JAVA is installed": "JAVA 已安装",
+  "JAVA download or unpacking error": "JAVA 下载或解压错误"
+}

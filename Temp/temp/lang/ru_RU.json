@@ -1,0 +1,8 @@
+{
+  "Sensors list": "Список температурных датчиков:",
+  "cpu_thermal_zone": "Процессор (CPU)",
+  "gpu_thermal_zone": "Видеочип (GPU)",
+  "ve_thermal_zone": "Видеодекодер (VE)",
+  "ddr_thermal_zone": "Оперативная память (DDR)",
+  "axp2202-battery": "Батарея"
+}

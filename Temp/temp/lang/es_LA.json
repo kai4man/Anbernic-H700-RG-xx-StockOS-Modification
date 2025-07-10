@@ -1,0 +1,8 @@
+{
+  "Sensors list": "Lista de sensores de temperatura:",
+  "cpu_thermal_zone": "Procesador (CPU)",
+  "gpu_thermal_zone": "Chip gráfico (GPU)",
+  "ve_thermal_zone": "Decodificador de video (VE)",
+  "ddr_thermal_zone": "Memoria RAM (DDR)",
+  "axp2202-battery": "Batería"
+}

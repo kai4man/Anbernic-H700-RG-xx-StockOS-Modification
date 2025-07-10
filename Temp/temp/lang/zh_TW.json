@@ -1,0 +1,8 @@
+{
+  "Sensors list": "溫度感測器列表：",
+  "cpu_thermal_zone": "處理器 (CPU)",
+  "gpu_thermal_zone": "顯示晶片 (GPU)",
+  "ve_thermal_zone": "視訊解碼器 (VE)",
+  "ddr_thermal_zone": "記憶體 (DDR)",
+  "axp2202-battery": "電池"
+}

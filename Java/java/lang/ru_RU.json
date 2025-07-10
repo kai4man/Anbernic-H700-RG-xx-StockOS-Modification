@@ -1,0 +1,10 @@
+{
+  "Select": "Выбрать",
+  "Exit": "Выход",
+  "No internet connection": "Невозможно подключиться к Интернету,\nповторите попытку после подключения...",
+  "JAVA not found. Requires loading": "JAVA не найдена. Требуется загрузка.",
+  "Downloading JAVA": "Скачивание JAVA",
+  "Unpacking JAVA": "Распаковка JAVA",
+  "JAVA is installed": "JAVA установлена",
+  "JAVA download or unpacking error": "Ошибка загрузки или распаковки JAVA"
+}
