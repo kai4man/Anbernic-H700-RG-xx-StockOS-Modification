@@ -17,7 +17,6 @@ def get_sensors():
         'gpu_thermal_zone': translator.translate('gpu_thermal_zone'),
         've_thermal_zone': translator.translate('ve_thermal_zone'),
         'ddr_thermal_zone': translator.translate('ddr_thermal_zone'),
-        'axp2202-battery': translator.translate('axp2202-battery'),
     }
     sensors = []
     for zone in sorted(os.listdir('/sys/class/thermal')):
@@ -27,6 +26,8 @@ def get_sensors():
         if os.path.isfile(temp_path) and os.path.isfile(type_path):
             with open(type_path) as f:
                 name = f.read().strip()
+            if name in ['axp2202-battery']:
+                continue
             with open(temp_path) as f:
                 temp = int(f.read().strip())
             temp_c_int = temp // 1000
@@ -37,15 +38,58 @@ def get_sensors():
             logging.info(line)
     return sensors
 
+def get_battery_info():
+    battery_info = []
+    
+    try:
+        for supply in os.listdir('/sys/class/power_supply'):
+            supply_path = f'/sys/class/power_supply/{supply}'
+            if os.path.isdir(supply_path):
+                type_path = os.path.join(supply_path, 'type')
+                if os.path.isfile(type_path):
+                    with open(type_path) as f:
+                        supply_type = f.read().strip()
+                    if supply_type == 'Battery':
+                        capacity_path = os.path.join(supply_path, 'capacity')
+                        if os.path.isfile(capacity_path):
+                            with open(capacity_path) as f:
+                                capacity = f.read().strip()
+                            battery_info.append(f"{translator.translate('battery_level')}: {capacity}%")
+                            logging.info(f"Battery level: {capacity}%")
+                        
+                        voltage_path = os.path.join(supply_path, 'voltage_now')
+                        if os.path.isfile(voltage_path):
+                            with open(voltage_path) as f:
+                                voltage = int(f.read().strip())
+                            voltage_v = voltage / 1000000
+                            battery_info.append(f"{translator.translate('battery_voltage')}: {voltage_v:.2f}V")
+                            logging.info(f"Battery voltage: {voltage_v:.2f}V")
+                        break
+    except Exception as e:
+        logging.error(f"Error reading power supply info: {e}")
+    
+    return battery_info
+
 def start():
     pass
 
 def update():
     draw_clear()
     draw_text((40, 30), translator.translate('Sensors list'), font=17, anchor="lm")
+    
     sensors = get_sensors()
+    y_offset = 70
     for i, line in enumerate(sensors):
-        draw_text((40, 70 + i * 30), line, font=15, anchor="lm")
+        draw_text((40, y_offset + i * 30), line, font=15, anchor="lm")
+    
+    battery_info = get_battery_info()
+    if battery_info:
+        y_offset += len(sensors) * 30 + 20
+        draw_text((40, y_offset), translator.translate('Battery info'), font=17, anchor="lm")
+        y_offset += 40
+        for i, line in enumerate(battery_info):
+            draw_text((40, y_offset + i * 30), line, font=15, anchor="lm")
+    
     draw_paint()
     time.sleep(1)
     input.check()

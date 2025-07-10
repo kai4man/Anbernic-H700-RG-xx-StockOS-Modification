@@ -4,5 +4,7 @@
   "gpu_thermal_zone": "Видеочип (GPU)",
   "ve_thermal_zone": "Видеодекодер (VE)",
   "ddr_thermal_zone": "Оперативная память (DDR)",
-  "axp2202-battery": "Батарея"
+  "Battery info": "Информация о батарее:",
+  "battery_level":"Уровень заряда",
+  "battery_voltage":"Напряжение"
 }

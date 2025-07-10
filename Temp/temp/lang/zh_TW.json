@@ -4,5 +4,7 @@
   "gpu_thermal_zone": "顯示晶片 (GPU)",
   "ve_thermal_zone": "視訊解碼器 (VE)",
   "ddr_thermal_zone": "記憶體 (DDR)",
-  "axp2202-battery": "電池"
+  "Battery info": "電池資訊：",
+  "battery_level": "電池電量",
+  "battery_voltage": "電壓"
 }

@@ -4,5 +4,7 @@
   "gpu_thermal_zone": "グラフィックチップ (GPU)",
   "ve_thermal_zone": "ビデオデコーダ (VE)",
   "ddr_thermal_zone": "メインメモリ (DDR)",
-  "axp2202-battery": "バッテリー"
+  "Battery info": "バッテリー情報:",
+  "battery_level": "バッテリーレベル",
+  "battery_voltage": "電圧"
 }
