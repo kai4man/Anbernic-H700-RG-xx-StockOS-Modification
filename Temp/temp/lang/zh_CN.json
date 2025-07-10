@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "内存 (DDR)",
   "Battery info": "电池信息：",
   "battery_level": "电池电量",
-  "battery_voltage": "电压"
+  "battery_voltage": "电压",
+  "battery_temp": "电池温度"
 }

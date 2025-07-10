@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "메인 메모리 (DDR)",
   "Battery info": "배터리 정보:",
   "battery_level": "배터리 레벨",
-  "battery_voltage": "전압"
+  "battery_voltage": "전압",
+  "battery_temp": "배터리 온도"
 }

@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "メインメモリ (DDR)",
   "Battery info": "バッテリー情報:",
   "battery_level": "バッテリーレベル",
-  "battery_voltage": "電圧"
+  "battery_voltage": "電圧",
+  "battery_temp": "バッテリー温度"
 }

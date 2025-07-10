@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "Оперативная память (DDR)",
   "Battery info": "Информация о батарее:",
   "battery_level":"Уровень заряда",
-  "battery_voltage":"Напряжение"
+  "battery_voltage":"Напряжение",
+  "battery_temp":"Температура"
 }

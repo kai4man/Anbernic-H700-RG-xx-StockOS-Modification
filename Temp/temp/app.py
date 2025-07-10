@@ -50,6 +50,14 @@ def get_battery_info():
                     with open(type_path) as f:
                         supply_type = f.read().strip()
                     if supply_type == 'Battery':
+                        temp_path = os.path.join(supply_path, 'temp')
+                        if os.path.isfile(temp_path):
+                            with open(temp_path) as f:
+                                temp = int(f.read().strip())
+                            temp_c = temp / 10 
+                            battery_info.append(f"{translator.translate('battery_temp')}: {temp_c:.1f}°C")
+                            logging.info(f"Battery temperature: {temp_c:.1f}°C")
+                        
                         capacity_path = os.path.join(supply_path, 'capacity')
                         if os.path.isfile(capacity_path):
                             with open(capacity_path) as f:

@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "Arbeitsspeicher (DDR)",
   "Battery info": "Batterie-Information:",
   "battery_level": "Batteriestand",
-  "battery_voltage": "Spannung"
+  "battery_voltage": "Spannung",
+  "battery_temp": "Batterietemperatur"
 }

@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "記憶體 (DDR)",
   "Battery info": "電池資訊：",
   "battery_level": "電池電量",
-  "battery_voltage": "電壓"
+  "battery_voltage": "電壓",
+  "battery_temp": "電池溫度"
 }

@@ -6,5 +6,6 @@
   "ddr_thermal_zone": "RAM (DDR)",
   "Battery info": "Battery info:",
   "battery_level": "Battery level",
-  "battery_voltage": "Voltage"
+  "battery_voltage": "Voltage",
+  "battery_temp": "Battery temperature"
 }
