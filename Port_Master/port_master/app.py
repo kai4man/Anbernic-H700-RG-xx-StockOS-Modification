@@ -930,26 +930,26 @@ def ports_fix():
                     with open(control_txt, 'w', encoding='utf-8') as f2:
                         f2.writelines(lines)
                     heredoc = '''
-CUR_TTY=/dev/null
+export CUR_TTY=/dev/null
 export HOME="/root"
 mkdir -p ~/.local/share
 mkdir -p ~/.config
-controlfolder="/roms/ports/PortMaster"
+export controlfolder="/roms/ports/PortMaster"
 
 SH_DIR="$(cd $(dirname "$0"); pwd)"
 directory="mnt/$(echo "$SH_DIR" | cut -d '/' -f3)/Roms"
 
 DSIPLAY_ID="$(cat /sys/class/power_supply/axp2202-battery/display_id)"
 if [[ $DSIPLAY_ID == "1" ]]; then
-  export AUDIODEV=hw:2,0
+    export AUDIODEV=hw:2,0
 else
   if [ -f "/roms/lib64/libSDL2-2.0.so.0.2800.6" ]; then
-    LD_PRELOAD=/roms/lib64/libSDL2-2.0.so.0.2800.6
+    export LD_PRELOAD=/roms/lib64/libSDL2-2.0.so.0.2800.6
   fi
 fi
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib32
-raloc="/mnt/vendor/deep/retro"
-raconf="--config /.config/retroarch/retroarch.cfg"
+export raloc="/mnt/vendor/deep/retro"
+export raconf="--config /.config/retroarch/retroarch.cfg"
 if [[ -e "/dev/input/by-path/platform-soc@03000000:gpio_keys-event-joystick" ]]; then
     echo 1 > /sys/class/power_supply/axp2202-battery/nds_esckey
     dpid=`ps -A| grep "portsCtrl.dge"| awk 'NR==1{print $1}'`
