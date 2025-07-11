@@ -1,0 +1,11 @@
+{
+  "Sensors list": "Lista de sensores de temperatura:",
+  "cpu_thermal_zone": "Procesador (CPU)",
+  "gpu_thermal_zone": "Chip gráfico (GPU)",
+  "ve_thermal_zone": "Decodificador de video (VE)",
+  "ddr_thermal_zone": "Memoria RAM (DDR)",
+  "Battery info": "Información de la batería:",
+  "battery_level": "Nivel de batería",
+  "battery_voltage": "Voltaje",
+  "battery_temp": "Temperatura de la batería"
+}

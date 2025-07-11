@@ -1,0 +1,11 @@
+{
+  "Sensors list": "温度センサー一覧:",
+  "cpu_thermal_zone": "プロセッサ (CPU)",
+  "gpu_thermal_zone": "グラフィックチップ (GPU)",
+  "ve_thermal_zone": "ビデオデコーダ (VE)",
+  "ddr_thermal_zone": "メインメモリ (DDR)",
+  "Battery info": "バッテリー情報:",
+  "battery_level": "バッテリーレベル",
+  "battery_voltage": "電圧",
+  "battery_temp": "バッテリー温度"
+}

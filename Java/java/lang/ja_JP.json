@@ -1,0 +1,10 @@
+{
+  "Select": "選択",
+  "Exit": "終了",
+  "No internet connection": "インターネットに接続できません。\n接続後にもう一度お試しください...",
+  "JAVA not found. Requires loading": "JAVAが見つかりません。ダウンロードが必要です。",
+  "Downloading JAVA": "JAVAをダウンロード中",
+  "Unpacking JAVA": "JAVAを解凍中",
+  "JAVA is installed": "JAVAがインストールされました",
+  "JAVA download or unpacking error": "JAVAのダウンロードまたは解凍エラー"
+}

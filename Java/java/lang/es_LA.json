@@ -1,0 +1,10 @@
+{
+  "Select": "Seleccionar",
+  "Exit": "Salir",
+  "No internet connection": "No se puede conectar a Internet, inténtelo\nnuevamente después de conectarse...",
+  "JAVA not found. Requires loading": "JAVA no encontrada. Se requiere descarga.",
+  "Downloading JAVA": "Descargando JAVA",
+  "Unpacking JAVA": "Descomprimiendo JAVA",
+  "JAVA is installed": "JAVA está instalada",
+  "JAVA download or unpacking error": "Error al descargar o descomprimir JAVA"
+}

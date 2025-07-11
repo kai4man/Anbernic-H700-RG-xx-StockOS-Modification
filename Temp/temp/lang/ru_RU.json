@@ -1,0 +1,11 @@
+{
+  "Sensors list": "Список температурных датчиков:",
+  "cpu_thermal_zone": "Процессор (CPU)",
+  "gpu_thermal_zone": "Видеочип (GPU)",
+  "ve_thermal_zone": "Видеодекодер (VE)",
+  "ddr_thermal_zone": "Оперативная память (DDR)",
+  "Battery info": "Информация о батарее:",
+  "battery_level":"Уровень заряда",
+  "battery_voltage":"Напряжение",
+  "battery_temp":"Температура"
+}

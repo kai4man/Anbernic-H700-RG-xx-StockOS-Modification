@@ -1,0 +1,11 @@
+{
+  "Sensors list": "온도 센서 목록:",
+  "cpu_thermal_zone": "프로세서 (CPU)",
+  "gpu_thermal_zone": "그래픽 칩 (GPU)",
+  "ve_thermal_zone": "비디오 디코더 (VE)",
+  "ddr_thermal_zone": "메인 메모리 (DDR)",
+  "Battery info": "배터리 정보:",
+  "battery_level": "배터리 레벨",
+  "battery_voltage": "전압",
+  "battery_temp": "배터리 온도"
+}

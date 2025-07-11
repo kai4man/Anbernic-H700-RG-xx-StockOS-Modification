@@ -1,0 +1,11 @@
+{
+  "Sensors list": "温度传感器列表：",
+  "cpu_thermal_zone": "处理器 (CPU)",
+  "gpu_thermal_zone": "图形芯片 (GPU)",
+  "ve_thermal_zone": "视频解码器 (VE)",
+  "ddr_thermal_zone": "内存 (DDR)",
+  "Battery info": "电池信息：",
+  "battery_level": "电池电量",
+  "battery_voltage": "电压",
+  "battery_temp": "电池温度"
+}
