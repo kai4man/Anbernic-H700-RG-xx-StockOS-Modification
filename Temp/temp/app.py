@@ -5,6 +5,7 @@ from graphic import draw_clear, draw_text, draw_paint, screen_width, screen_heig
 from language import Translator
 import input
 from main import system_lang
+import threading
 
 translator = Translator(system_lang)
 
@@ -97,9 +98,12 @@ def update():
         y_offset += 40
         for i, line in enumerate(battery_info):
             draw_text((40, y_offset + i * 30), line, font=15, anchor="lm")
-    
+
     draw_paint()
     time.sleep(1)
-    input.check()
-    if input.codeName:
-        exit(0) 
+
+def fn_watcher():
+    while True:
+        input.check()
+        if input.codeName:
+            os._exit(0)
