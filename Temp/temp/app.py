@@ -1,11 +1,11 @@
 import time
 import os
 import logging
-from graphic import draw_clear, draw_text, draw_paint, screen_width, screen_height
+from graphic import draw_clear, draw_text, draw_paint, screen_width, screen_height, draw_line, draw_rectangle_r, draw_rectangle
 from language import Translator
 import input
-from main import system_lang
-import threading
+from main import system_lang, hw_info
+
 
 translator = Translator(system_lang)
 
@@ -84,23 +84,44 @@ def start():
 
 def update():
     draw_clear()
-    draw_text((40, 30), translator.translate('Sensors list'), font=17, anchor="lm")
+    
+    draw_background_grid()
+    y_base = 0
+    if hw_info == 1:
+        y_base = 120
+    draw_rectangle_r([10, 30 + y_base, screen_width-10, 80 + y_base], 8, fill="#0a0a1a", outline="#7f4f00")
+    draw_text((screen_width//2, 55 + y_base), translator.translate('System Monitor'), font=17, anchor="mm", color="#00ffff")
+    
+    draw_rectangle_r([20, 90 + y_base, screen_width-20, 270 + y_base], 10, fill="#0a0a1a", outline="#7f4f00")
+    draw_text((40, 110 + y_base), translator.translate('Sensors list'), font=16, anchor="lm", color="#00ffff")
     
     sensors = get_sensors()
-    y_offset = 70
+    y_offset = 140 + y_base
     for i, line in enumerate(sensors):
-        draw_text((40, y_offset + i * 30), line, font=15, anchor="lm")
+        draw_text((40, y_offset + i*30), line, font=15, anchor="lm", color="#ffffff")
     
     battery_info = get_battery_info()
     if battery_info:
-        y_offset += len(sensors) * 30 + 20
-        draw_text((40, y_offset), translator.translate('Battery info'), font=17, anchor="lm")
-        y_offset += 40
+        bat_height = 40 + len(battery_info)*30
+        draw_rectangle_r([20, 290 + y_base, screen_width-20, 310 + bat_height + y_base], 10, fill="#0a0a1a", outline="#7f4f00")
+        draw_text((40, 310 + y_base), translator.translate('Battery info'), font=16, anchor="lm", color="#00ffff")
+        
+        y_offset = 340 + y_base
         for i, line in enumerate(battery_info):
-            draw_text((40, y_offset + i * 30), line, font=15, anchor="lm")
-
+            draw_text((40, y_offset + i*30), line, font=15, anchor="lm", color="#ffffff")
+    
+    draw_rectangle([0, 0, screen_width, 15], fill="#7f4f00")
+    draw_rectangle([0, screen_height-15, screen_width, screen_height], fill="#7f4f00")
+    
     draw_paint()
     time.sleep(1)
+
+def draw_background_grid():
+    for x in range(0, screen_width, 40):
+        draw_line([x - 1, 0, x - 1, screen_height], fill="#bb7200", width=1)
+    
+    for y in range(0, screen_height, 40):
+        draw_line([0, y, screen_width, y], fill="#bb7200", width=1)
 
 def fn_watcher():
     while True:

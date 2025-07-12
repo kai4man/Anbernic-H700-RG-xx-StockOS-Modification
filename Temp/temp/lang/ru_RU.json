@@ -1,4 +1,5 @@
 {
+  "System Monitor": "Системный монитор",
   "Sensors list": "Список температурных датчиков:",
   "cpu_thermal_zone": "Процессор (CPU)",
   "gpu_thermal_zone": "Видеочип (GPU)",

@@ -16,10 +16,11 @@ screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 48
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
 
-fontFile = {17: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17),
-            15: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15),
-            13: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13),
-            11: ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)}
+script_dir = os.path.dirname(os.path.abspath(__file__))
+font_file = os.path.join(script_dir, 'font', 'font.ttf')
+if not os.path.exists(font_file):
+    font_file = "/usr/share/fonts/TTF/DejaVuSansMono.ttf"
+
 colorBlue = "#bb7200"
 colorBlueD1 = "#7f4f00"
 colorGray = "#292929"
@@ -115,7 +116,7 @@ def draw_clear():
 
 def draw_text(position, text, font=15, color="white", **kwargs):
     global activeDraw
-    activeDraw.text(position, text, font=fontFile[font], fill=color, **kwargs)
+    activeDraw.text(position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs)
 
 
 def draw_rectangle(position, fill=None, outline=None, width=1):
@@ -145,6 +146,15 @@ def draw_log(text, fill="Black", outline="black", width=500):
     text_x = x + width / 2
     text_y = y + 40
     draw_text((text_x, text_y), text, anchor="mm")
+
+
+def draw_line(points, fill="white", width=1):
+    global activeDraw
+    activeDraw.line(points, fill=fill, width=width)
+
+def draw_background(color="black"):
+    global activeDraw
+    activeDraw.rectangle((0, 0, screen_width, screen_height), fill=color)
 
 
 fb_screeninfo = get_fb_screeninfo()

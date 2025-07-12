@@ -1,4 +1,5 @@
 {
+  "System Monitor": "System Monitor",
   "Sensors list": "Sensors list:",
   "cpu_thermal_zone": "Processor (CPU)",
   "gpu_thermal_zone": "Graphics chip (GPU)",
