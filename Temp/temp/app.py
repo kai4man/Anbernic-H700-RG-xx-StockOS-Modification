@@ -1,7 +1,7 @@
 import time
 import os
 import logging
-from graphic import draw_clear, draw_text, draw_paint, screen_width, screen_height, draw_line, draw_rectangle_r, draw_rectangle
+from graphic import draw_clear, draw_text, draw_paint, screen_width, screen_height, draw_line, draw_background_grid, draw_rectangle_r, draw_rectangle
 from language import Translator
 import input
 from main import system_lang, hw_info
@@ -116,12 +116,6 @@ def update():
     draw_paint()
     time.sleep(1)
 
-def draw_background_grid():
-    for x in range(0, screen_width, 40):
-        draw_line([x - 1, 0, x - 1, screen_height], fill="#bb7200", width=1)
-    
-    for y in range(0, screen_height, 40):
-        draw_line([0, y, screen_width, y], fill="#bb7200", width=1)
 
 def fn_watcher():
     while True:
