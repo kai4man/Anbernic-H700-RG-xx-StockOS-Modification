@@ -170,32 +170,3 @@ Updated every **5 minutes** in a background thread.
 * Ensure **/dev/fb0** framebuffer device is accessible with write permissions.
 * The application uses **threading** for input polling and weather updates; run in an environment with thread support.
 * For **sound alerts**, `aplay` is called; ensure it is installed on your system if running on Linux.
-
----
-
-## License
-
-This project is intended for internal or educational use. Adapt licensing as required.
-
----
-
-## Author
-
-\[Your Name / Organization]
-
----
-
-## Contact
-
-For bug reports or suggestions, please contact: \[[your\_email@example.com](mailto:your_email@example.com)]
-
----
-
-```
-
-Let me know if you want:
-
-- Embedded architecture diagrams.
-- README badges.
-- Separate **developer documentation** explaining class APIs for maintenance and extension.
-```
