@@ -8,5 +8,8 @@
   "Battery info": "배터리 정보:",
   "battery_level": "배터리 레벨",
   "battery_voltage": "전압",
-  "battery_temp": "배터리 온도"
+  "battery_temp": "배터리 온도",
+  "battery_status": "배터리 상태",
+  "Charging": "충전 중",
+  "Discharging": "방전 중"
 }

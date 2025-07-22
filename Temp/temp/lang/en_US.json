@@ -8,5 +8,8 @@
   "Battery info": "Battery info:",
   "battery_level": "Battery level",
   "battery_voltage": "Voltage",
-  "battery_temp": "Battery temperature"
+  "battery_temp": "Battery temperature",
+  "battery_status": "Battery status",
+  "Charging": "Charging",
+  "Discharging": "Discharging"
 }

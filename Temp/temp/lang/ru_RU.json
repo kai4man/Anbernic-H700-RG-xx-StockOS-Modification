@@ -8,5 +8,8 @@
   "Battery info": "Информация о батарее:",
   "battery_level":"Уровень заряда",
   "battery_voltage":"Напряжение",
-  "battery_temp":"Температура"
+  "battery_temp":"Температура",
+  "battery_status": "Состояние батареи",
+  "Charging": "Заряжается",
+  "Discharging": "Разряжается"
 }

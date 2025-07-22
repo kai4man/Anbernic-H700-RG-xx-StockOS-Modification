@@ -8,5 +8,8 @@
   "Battery info": "バッテリー情報:",
   "battery_level": "バッテリーレベル",
   "battery_voltage": "電圧",
-  "battery_temp": "バッテリー温度"
+  "battery_temp": "バッテリー温度",
+  "battery_status": "バッテリー状態",
+  "Charging": "充電中",
+  "Discharging": "放電中"
 }

@@ -8,5 +8,8 @@
   "Battery info": "Informations sur la batterie :",
   "battery_level": "Niveau de batterie",
   "battery_voltage": "Tension",
-  "battery_temp": "Température de la batterie"
+  "battery_temp": "Température de la batterie",
+  "battery_status": "État de la batterie",
+  "Charging": "Chargement",
+  "Discharging": "Déchargement"
 }

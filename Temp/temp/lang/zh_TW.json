@@ -8,5 +8,8 @@
   "Battery info": "電池資訊：",
   "battery_level": "電池電量",
   "battery_voltage": "電壓",
-  "battery_temp": "電池溫度"
+  "battery_temp": "電池溫度",
+  "battery_status": "電池狀態",
+  "Charging": "充電中",
+  "Discharging": "放電中"
 }

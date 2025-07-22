@@ -8,5 +8,8 @@
   "Battery info": "Batterie-Information:",
   "battery_level": "Batteriestand",
   "battery_voltage": "Spannung",
-  "battery_temp": "Batterietemperatur"
+  "battery_temp": "Batterietemperatur",
+  "battery_status": "Batteriestatus",
+  "Charging": "Wird geladen",
+  "Discharging": "Entladung"
 }
