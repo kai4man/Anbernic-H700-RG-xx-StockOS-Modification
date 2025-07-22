@@ -1,0 +1,66 @@
+{
+  "systems": [
+    {
+      "menu": "menu.back",
+      "menu_help": "menu.back.help",
+      "options": ["menu.sys", "menu.emu", "menu.save"],
+      "opt_help": [
+        "menu.back.opt.sys",
+        "menu.back.opt.emu",
+        "menu.back.opt.save"
+      ],
+      "operations": ["back:sys", "back:emu", "back:save"]
+    },
+    {
+      "menu": "menu.restore",
+      "menu_help": "menu.restore.help",
+      "options": ["menu.sys", "menu.emu", "menu.save"],
+      "opt_help": [
+        "menu.restore.opt.sys",
+        "menu.restore.opt.emu",
+        "menu.restore.opt.save"
+      ],
+      "operations": ["restore:sys", "restore:emu", "restore:save"]
+    },
+    {
+      "menu": "menu.random",
+      "menu_help": "menu.random.help",
+      "options": ["menu.random.all", "menu.random.favo", "menu.random.hist", "menu.random.add", "menu.random.del"],
+      "opt_help": [
+        "menu.random.opt.all",
+        "menu.random.opt.favo",
+        "menu.random.opt.hist",
+        "menu.random.opt.add",
+        "menu.random.opt.del"
+      ],
+      "operations": ["random:all", "random:favorite", "random:history", "random:add", "random:del"]
+    },
+    {
+      "menu": "menu.ebook",
+      "menu_help": "menu.ebook.help",
+      "options": ["menu.ebook.open"],
+      "opt_help": [
+        "menu.ebook.opt.open"
+      ],
+      "operations": ["tools:ebook"]
+    },
+    {
+      "menu": "menu.st",
+      "menu_help": "menu.st.help",
+      "options": ["menu.st.open"],
+      "opt_help": [
+        "menu.st.opt.open"
+      ],
+      "operations": ["tools:st"]
+    },
+    {
+      "menu": "menu.apps",
+      "menu_help": "menu.apps.help",
+      "options": ["menu.apps.open"],
+      "opt_help": [
+        "menu.apps.opt.open"
+      ],
+      "operations": ["tools:apps"]
+    }
+  ]
+}

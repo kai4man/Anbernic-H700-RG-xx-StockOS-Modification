@@ -1,0 +1,98 @@
+#!/bin/bash
+# make by G.R.H
+
+. /mnt/mod/ctrl/configs/functions &>/dev/null 2>&1
+
+
+case $1 in
+    ebook) # E-book conversion code
+        T_DIR="Ebook"
+        for TF_PATH in /mnt/mmc /mnt/sdcard
+        do
+            find $TF_PATH/$T_DIR/* -maxdepth 2 -iname '*.txt' -type f | while read -r FILE
+            do
+                if [[ ! "$(basename "$FILE")" =~ ".bak" ]] && [ ! -f "$FILE.bak" ]; then
+                    CHK_FILE="$TF_PATH/$T_DIR/$RANDOM-$RANDOM.txt"
+                    head -n 5 "$FILE" > $CHK_FILE
+                    CODE=$(file -bi "$CHK_FILE" | awk -F "=" '{print $2}')
+                    if [[ ! "$CODE" == "utf-8" ]]; then
+                        mv "$FILE" "$FILE.bak"
+                        iconv -f GB2312 -t UTF-8 "$FILE.bak" -c -o "$FILE"
+                        if [ "$?" -eq "1" ]; then
+                            mv "$FILE.bak" "$FILE"
+                        fi
+                    fi
+                    rm -f $CHK_FILE
+                fi
+            done
+        done
+        sync
+    ;;
+    
+    add) # Create random flag
+        case $(cat /mnt/vendor/oem/language.ini) in
+            0|1)
+                FLG_FILE="-游戏盲盒-"
+            ;;
+            *)
+                FLG_FILE="-Random-"
+            ;;
+        esac
+        touch /mnt/mod/ctrl/configs/random.flg
+        for TF in /mnt/mmc/Roms /mnt/sdcard/Roms
+        do
+            if [ -d "$TF" ]; then
+                for DIR in  A5200 A7800 A800 AMIGA A2600 ATARIST ATOMISWAVE CPS1 CPS2 CPS3    \
+                            C64 DOS DREAMCAST FBNEO FC FDS GB GBA GBC GG HBMAME     \
+                            LYNX MAME MD MDCD MSX N64 NAOMI NEOGEO NGP PCE      \
+                            PGM2 POKE SEGA32X SFC SMS VARCADE VB VIC20 WS
+                do
+                    rm -f "$TF/$DIR"/{-游戏盲盒*,-随机游戏*,-Random*}
+                    [[ ! $(ls -A $TF/$DIR) = "" ]] && (echo "G.R.H" > "$TF/$DIR/$FLG_FILE".zip)
+                done
+            
+                for DIR in  GW NDS OPENBOR PCECD PICO PS SATURN
+                do
+                    rm -f "$TF/$DIR"/{-游戏盲盒*,-随机游戏*,-Random*}
+                done
+            
+                [[ ! $(ls -A $TF/GW) == "" ]] && (echo "G.R.H" > "$TF/GW/$FLG_FILE".mgw)
+                [[ ! $(ls -A $TF/PCECD) == "" ]] && (echo "G.R.H" > "$TF/PCECD/$FLG_FILE".cue)
+                [[ ! $(ls -A $TF/PICO) == "" ]] && (echo "G.R.H" > "$TF/PICO/$FLG_FILE".p8)
+                [[ ! $(ls -A $TF/PS) == "" ]] && (echo "G.R.H" > "$TF/PS/$FLG_FILE".chd)
+                [[ ! $(ls -A $TF/SATURN) == "" ]] && (echo "G.R.H" > "$TF/SATURN/$FLG_FILE".chd)
+            fi
+        done
+    ;;
+    del) # Del random flag
+        rm -f /mnt/mod/ctrl/configs/random.flg
+        for TF in /mnt/mmc/Roms /mnt/sdcard/Roms
+        do
+            if [ -d "$TF" ]; then
+                for DIR in  A5200 A7800 A800 AMIGA A2600 ATARIST ATOMISWAVE CPS1 CPS2 CPS3    \
+                            C64 DOS DREAMCAST FBNEO FC FDS GB GBA GBC GG HBMAME VIC20    \
+                            LYNX MAME MD MDCD MSX N64 NAOMI NDS NEOGEO NGP OPENBOR PCE      \
+                            PGM2 POKE SEGA32X SFC SMS VARCADE VB WS GW PCECD PICO PS SATURN
+                do
+                    rm -f "$TF/$DIR"/{-游戏盲盒*,-随机游戏*,-Random*}
+                done
+            fi
+        done
+    ;;
+    st) # Simple Terminal
+        HOME=/root
+        "$(dirname "$0")"/SimpleTerminal
+    ;;
+    
+    apps) # Reinstall apps
+        mkdir -p /mnt/mmc/update
+        cat <<'EOF' >/mnt/mmc/update/update.sh
+#!/bin/bash
+SHDIR="$(cd $(dirname "$0"); pwd)"
+rm -rf "$SHDIR"
+/mnt/mod/update/update.sh
+EOF
+    ;;
+esac
+
+user_quit
