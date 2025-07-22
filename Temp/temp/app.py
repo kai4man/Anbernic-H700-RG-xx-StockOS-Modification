@@ -82,7 +82,7 @@ def get_battery_info():
                         break
     except Exception as e:
         logging.error(f"Error reading power supply info: {e}")
-    print(battery_info)
+
     return battery_info
 
 def start():
