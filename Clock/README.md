@@ -1,67 +1,201 @@
-# Clock Program User Manual
+# Time Application Usage Manual
 
-## 1. Introduction
-The Clock program is a multi - functional time - management application that offers clock, timer, and stopwatch features, along with real - time weather information. This manual provides detailed instructions on how to use the program effectively.
+## Overview
 
-## 2. Prerequisites
-- The program is designed to run on specific hardware platforms such as RGcubexx, RG34xx, etc.
-- A stable network connection is required to fetch weather information.
+This application is a multi-functional time utility that includes:
 
-## 3. Installation
-There is no specific installation process mentioned in the provided code. It is assumed that the program is pre - installed on the target device.
+- **Clock**: Real-time date and time display with weather information.
+- **Timer**: Countdown timer with configurable hours, minutes, seconds, and end alert.
+- **Stopwatch**: Precision stopwatch with millisecond display.
 
-## 4. Starting the Program
-The program can be started by running the `main.py` file. When the program starts, it will display a welcome message and then enter the console window.
+It is designed to run on different RG device models with adaptable screen resolutions and supports multilingual interface.
+
+---
+
+## Installation
+
+1. Ensure **Python 3.8+** is installed on your system.
+2. Install required Python modules:
+
+```bash
+pip install pillow
+````
+
+3. Make sure the device supports framebuffer (`/dev/fb0`) and input event reading (`/dev/input/event1`).
+
+4. Place the project directory into your device or emulator environment, preserving the folder structure, including:
+
+* `font/`
+* `lang/`
+* `sound/`
+
+---
+
+## File Structure
+
+* `main.py` – Entry point, initializes device hardware info and system language, runs main application loop.
+* `app.py` – Main logic for console, clock, timer, stopwatch, and UI management.
+* `graphic.py` – Graphics rendering module using Pillow for drawing shapes, text, and handling framebuffer updates.
+* `input.py` – Handles input events from device buttons or joystick keys.
+* `language.py` – Loads and provides multilingual translation via JSON language files.
+* `weather.py` – Fetches current weather based on device IP location using **wttr.in** API.
+
+---
+
+## Features and Usage
+
+### 1. Starting the Application
+
+Run:
 
 ```bash
 python main.py
 ```
 
-## 5. Program Interface and Functionality
+### 2. Console Menu
 
-### 5.1 Console Window
-- **Navigation**:
-    - Use the `DY` key (up/down) to select different functions. There are three available functions: `Clock`, `Timer`, and `Stopwatch`.
-    - Press the `A` key to open the selected function.
-    - Press the `MENUF` key to exit the program.
-- **Visual Elements**:
-    - The window shows a title bar with the program name and version.
-    - A list of available functions is displayed, and the currently selected function is highlighted.
-    - Two buttons are provided: one for opening the selected function and one for exiting the program.
+* Navigate using **DY** key (up/down).
+* Select an option by pressing **A**.
+* Exit by pressing **MENUF**.
 
-### 5.2 Clock Window
-- **Display**:
-    - The current date and time are displayed prominently in the center of the screen.
-    - Real - time weather information is also shown, including temperature, humidity, weather condition, and the city name.
-- **Navigation**:
-    - Slide any key to return to the console window.
+Available options:
 
-### 5.3 Timer Window
-#### 5.3.1 Setting the Timer
-- **Adjusting Time**:
-    - Use the `DY` key (up/down) to adjust the hours, minutes, and seconds of the timer.
-    - Use the `DX` key (left/right) to switch between setting hours, minutes, seconds, and the end - action.
-- **Selecting End - Action**:
-    - The end - action can be either `Sound` or `Vibrate`. Press the `DY` key when the end - action setting is selected to toggle between the two options.
-- **Starting the Timer**:
-    - Press the `START` key to start the timer if the set duration is greater than 1 second.
-- **Exiting the Timer Setup**:
-    - Press the `MENUF` key to return to the console window.
+* **CLOCK**
+* **TIMER**
+* **STOPWATCH**
 
-#### 5.3.2 Running the Timer
-- **Display**:
-    - The remaining time of the timer is displayed in the center of the screen.
-- **Navigation**:
-    - There is no specific navigation option during the timer countdown. Once the timer finishes, appropriate actions (sound or vibration) will be triggered according to the setting.
+---
 
+### 3. Clock
 
-## 6. Language Support
-The program supports multiple languages, including English (`en_US`), Chinese (`zh_CN`, `zh_TW`), Japanese (`ja_JP`), Korean (`ko_KR`), Spanish (`es_LA`), Russian (`ru_RU`), German (`de_DE`), French (`fr_FR`), and Portuguese (`pt_BR`). The language is automatically detected based on the system settings.
+Displays:
 
-## 7. Troubleshooting
-- **Weather Information Not Loading**:
-    - Check your network connection.
-    - Ensure that the IP - API and wttr.in services are accessible from your location.
-- **Program Freezing or Crashing**:
-    - Try restarting the program.
-    - If the problem persists, check the system log for error messages.
+* Current date and time (updated every second).
+* Real-time weather data including temperature, humidity, and condition for your city.
+
+**Exit**: Slide key or press **MENUF** to return to console.
+
+---
+
+### 4. Timer
+
+#### Configuration
+
+* Adjust using **DY** to increment/decrement:
+
+  * **Seconds**
+  * **Minutes**
+  * **Hours**
+  * **At the end** (choose between **Sound** or **Vibrate** alert)
+
+* Switch setting option using **DX**.
+
+* Press **START** to begin countdown.
+
+* Exit configuration by pressing **MENUF**.
+
+#### During Countdown
+
+* Displays remaining time in `HH:MM:SS` format.
+* When finished:
+
+  * Plays sound (`sound.wav`) or vibrates based on your selection.
+* Return to console with **slide key**.
+
+---
+
+### 5. Stopwatch
+
+* **START**: Start or stop timing.
+* **SELECT**: Reset stopwatch.
+* Displays time with precision up to **centiseconds** (00:00:00.00).
+
+**Exit**:
+
+* Press **MENUF** to return to console.
+
+---
+
+## Language Support
+
+The application supports multiple languages including:
+
+* Simplified Chinese (zh\_CN)
+* Traditional Chinese (zh\_TW)
+* English (en\_US)
+* Japanese (ja\_JP)
+* Korean (ko\_KR)
+* Spanish (es\_LA)
+* Russian (ru\_RU)
+* German (de\_DE)
+* French (fr\_FR)
+* Portuguese (pt\_BR)
+
+Languages are auto-selected based on system configuration files:
+
+* `/mnt/vendor/oem/board.ini`
+* `/mnt/vendor/oem/language.ini`
+
+---
+
+## Hardware Compatibility
+
+Supports multiple RG device models such as:
+
+* RG35xxH
+* RG40xxH
+* RG28xx
+* And others as mapped in `main.py`.
+
+Screen resolutions adjust accordingly based on the detected hardware info.
+
+---
+
+## Weather API
+
+Uses **wttr.in** with IP geolocation. If the location fails to fetch, defaults to **New York**.
+
+Data includes:
+
+* Temperature
+* Humidity
+* Weather condition
+
+Updated every **5 minutes** in a background thread.
+
+---
+
+## Notes
+
+* Ensure **/dev/fb0** framebuffer device is accessible with write permissions.
+* The application uses **threading** for input polling and weather updates; run in an environment with thread support.
+* For **sound alerts**, `aplay` is called; ensure it is installed on your system if running on Linux.
+
+---
+
+## License
+
+This project is intended for internal or educational use. Adapt licensing as required.
+
+---
+
+## Author
+
+\[Your Name / Organization]
+
+---
+
+## Contact
+
+For bug reports or suggestions, please contact: \[[your\_email@example.com](mailto:your_email@example.com)]
+
+---
+
+```
+
+Let me know if you want:
+
+- Embedded architecture diagrams.
+- README badges.
+- Separate **developer documentation** explaining class APIs for maintenance and extension.
+```
