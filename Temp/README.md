@@ -39,14 +39,9 @@ The application supports the following Anbernic models:
    - Automatic language localization
 
 ## Installation
-1. Ensure you have Python 3 installed on your device
-2. Copy all program files to your device:
-   - `app.py`
-   - `graphic.py`
-   - `input.py`
-   - `language.py`
-   - `main.py`
-3. Create a `lang` directory with translation files (e.g., `en_US.json`)
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
 
 ## Usage
 1. Run the application by executing:

@@ -14,20 +14,9 @@ It is designed to run on different RG device models with adaptable screen resolu
 
 ## Installation
 
-1. Ensure **Python 3.8+** is installed on your system.
-2. Install required Python modules:
-
-```bash
-pip install pillow
-````
-
-3. Make sure the device supports framebuffer (`/dev/fb0`) and input event reading (`/dev/input/event1`).
-
-4. Place the project directory into your device or emulator environment, preserving the folder structure, including:
-
-* `font/`
-* `lang/`
-* `sound/`
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
 
 ---
 

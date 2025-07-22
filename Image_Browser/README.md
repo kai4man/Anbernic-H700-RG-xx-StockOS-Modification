@@ -22,16 +22,9 @@ The application is compatible with various Anbernic models including:
 - RG35xxPRO
 
 ## Installation
-1. Copy the application files to your Anbernic device
-2. Ensure all required files are present:
-   - `app.py`
-   - `anbernic.py`
-   - `graphic.py`
-   - `input.py`
-   - `language.py`
-   - `main.py`
-   - Font files in `/font/` directory
-   - Language files in `/lang/` directory
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
 
 ## Basic Navigation
 
