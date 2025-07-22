@@ -347,12 +347,12 @@ def check_and_update_harbour():
                         changes_made = True
                         break
             
-            old_text = "https://github.com/PortsMaster/PortMaster-Info/raw/main/"
-            new_text = "https://github.com/PortsMaster/PortMaster-Info/blob/main/"
+#            old_text = "https://github.com/PortsMaster/PortMaster-Info/raw/main/"
+#            new_text = "https://github.com/PortsMaster/PortMaster-Info/blob/main/"
             
-            if old_text in content:
-                content = content.replace(old_text, new_text)
-                changes_made = True
+#            if old_text in content:
+#                content = content.replace(old_text, new_text)
+#                changes_made = True
             
             if changes_made:
                 with open(HARBOUR_FILE, "w") as f:
