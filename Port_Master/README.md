@@ -83,9 +83,9 @@ The application supports these system languages:
 - Maintains compatibility with StockOS file structure
 
 ## Credits
-- Developed by KAI4MAN and G.R.H
 - Uses PortMaster core functionality
 - Includes community-developed runtime libraries
+
 
 ## Disclaimer
 This software is provided as-is. The developers are not responsible for any device issues that may occur from its use. Always back up your data before installation.
