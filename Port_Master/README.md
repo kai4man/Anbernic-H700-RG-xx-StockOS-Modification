@@ -21,9 +21,9 @@ The application supports the following Anbernic devices:
 - RGCUBEXX-H
 
 ## Installation
-1. Place the application files in the `/roms/ports/PortMaster` directory
-2. Ensure you have internet connectivity
-3. Run the application
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
 
 ## Usage
 When launched, the application will:
