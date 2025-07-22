@@ -152,9 +152,12 @@ def draw_line(points, fill="white", width=1):
     global activeDraw
     activeDraw.line(points, fill=fill, width=width)
 
-def draw_background(color="black"):
-    global activeDraw
-    activeDraw.rectangle((0, 0, screen_width, screen_height), fill=color)
+def draw_background_grid():
+    for x in range(0, screen_width, 40):
+        draw_line([x - 1, 0, x - 1, screen_height], fill="#bb7200", width=1)
+    
+    for y in range(0, screen_height, 40):
+        draw_line([0, y, screen_width, y], fill="#bb7200", width=1)
 
 
 fb_screeninfo = get_fb_screeninfo()
