@@ -1,7 +1,7 @@
-# System Settings Modifier - User Manual
+# Modify System Settings - User Manual
 
 ## Overview
-The System Settings Modifier is a utility application designed for handheld gaming devices (particularly Anbernic models) that allows users to modify various system settings through a graphical interface. It supports multiple languages and provides a user-friendly menu system for configuration changes.
+The Modify System Settings is a utility application designed for handheld gaming devices (particularly Anbernic models) that allows users to modify various system settings through a graphical interface. It supports multiple languages and provides a user-friendly menu system for configuration changes.
 
 ## Supported Devices
 The application is compatible with the following Anbernic devices:
