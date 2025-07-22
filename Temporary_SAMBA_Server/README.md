@@ -28,6 +28,11 @@ This script (`Temporary_SAMBA_Server.sh`) provides a temporary SAMBA server setu
 
 ---
 
+## Installation
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
+
 ## Usage Instructions
 1. **Run the Script**:  
    Execute the script with Bash:  

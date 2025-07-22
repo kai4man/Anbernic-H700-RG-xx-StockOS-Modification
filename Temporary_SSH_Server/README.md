@@ -15,6 +15,11 @@ This script creates a temporary SSH server on your device, displaying connection
 - Controller/button event handling for user interaction
 - Automatic cleanup on supported hardware models (RG28xx)
 
+## Installation
+1. Ensure your device is running supported firmware
+2. Place the application files in the appropriate directory (typically `/mnt/mmc/Roms/APPS/`)
+3. The application will automatically detect your hardware model
+
 ## Usage Instructions
 
 ### Basic Operation
