@@ -1,7 +1,7 @@
-# Anbernic System Tools - User Manual
+# Anbernic Modify System Tools - User Manual
 
 ## Overview
-Anbernic System Tools is a utility application designed for Anbernic handheld gaming devices that provides system management, backup/restore functionality, and various customization options. The application features a graphical interface optimized for handheld devices.
+Modify System Tools is a utility application designed for Anbernic handheld gaming devices that provides system management, backup/restore functionality, and various customization options. The application features a graphical interface optimized for handheld devices.
 
 ## Supported Devices
 The application supports the following Anbernic models:
