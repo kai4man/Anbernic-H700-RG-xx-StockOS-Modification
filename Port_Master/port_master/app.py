@@ -716,6 +716,8 @@ def load_creen_runtimes() -> None:
             load_screen_process_download_runtimes()
         elif input.key("B"):
             waiting = False
+            gr.draw_clear()
+            gr.draw_paint()
             return
     
     input.reset_input()
