@@ -446,7 +446,7 @@ def clean_exit(*args):
         subprocess.run(["sudo", "ln", "-sf", "/usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0.2800.5", "/usr/lib/libSDL2-2.0.so.0"], check=True)
         subprocess.run(["sudo", "ln", "-sf", "/mnt/vendor/deep/retro/retroarch", "/usr/bin/retroarch"], check=True)
         if os.path.exists("/usr/bin/retroarch"):
-            os.chmod("/usr/bin/retroarch", 0o777)
+            os.chmod("/usr/bin/retroarch", 0o755)
         subprocess.run(["sudo", "ldconfig"], check=True)
         logger.info("Библиотеки настроены успешно")
         
