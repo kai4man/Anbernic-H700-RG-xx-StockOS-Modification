@@ -37,7 +37,7 @@ This application is a Java game launcher designed for Anbernic handheld gaming d
 ## Usage Instructions
 
 ### Starting the Application
-- Execute `main.py` to launch the program
+- Execute `Java.sh` to launch the program
 
 ### Interface Navigation
 - **UP/DOWN buttons**: Scroll through game list
