@@ -7,7 +7,7 @@ This application is a Java game launcher designed for Anbernic handheld gaming d
 - Game browser with preview images
 - Automatic Java environment installation
 - Multi-language support (English, Chinese, Japanese, etc.)
-- Touch-friendly interface optimized for small screens
+- A user-friendly interface specifically designed for small screens
 - Support for multiple screen resolutions
 - Game directory auto-creation
 
