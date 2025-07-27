@@ -82,7 +82,7 @@ def handle_console_input() -> None:
 
     gr.draw_clear()
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('CLOCK')} {ver}", font=17, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('CLOCK')} {ver}", font=23, anchor="mm")
 
     if selected_index >= len(file_list):
         selected_index = 0
@@ -124,7 +124,7 @@ def handle_clock_input() -> None:
         current_time = now.strftime("%H:%M:%S")
         weather_data, city = weather.get_weather()
         gr.draw_clear()
-        gr.draw_text((x_pos, y_pos - 60), current_date, clock=1, font=40, color=gr.colorGreen, anchor="mm")
+        gr.draw_text((x_pos, y_pos - 60), current_date, clock=1, font=46, color=gr.colorGreen, anchor="mm")
         gr.draw_text((x_time_pos, y_pos + 20), current_time, clock=1, font=100, color=gr.colorGreen, anchor="lm")
         
         weather_x = 20
@@ -183,11 +183,11 @@ def handle_timer_input() -> None:
     start_time = None
     countdown_finished = False
     gr.draw_clear()
-    gr.draw_text((x_pos, y_pos - 100), f"{translator.translate('Set')}: {translator.translate(current_set)}", font=30, anchor="mm")
+    gr.draw_text((x_pos, y_pos - 100), f"{translator.translate('Set')}: {translator.translate(current_set)}", font=36, anchor="mm")
     gr.draw_text((x_pos, y_pos - 25), f"{hours:02d}:{minutes:02d}:{seconds:02d}", font=60, anchor="mm")
-    gr.draw_text((x_pos, y_pos + 50), f"{translator.translate('At the end')}: {translator.translate(end_time)}", font=30, anchor="mm")
-    gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press DY to adjust, DX to switch setting')}", font=15, anchor="mm")
-    gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press START to start, M/F to Exit')}", font=15, anchor="mm")
+    gr.draw_text((x_pos, y_pos + 50), f"{translator.translate('At the end')}: {translator.translate(end_time)}", font=36, anchor="mm")
+    gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press DY to adjust, DX to switch setting')}", font=21, anchor="mm")
+    gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press START to start, M/F to Exit')}", font=21, anchor="mm")
     gr.draw_paint()
     
     while start_time is None:
@@ -249,11 +249,11 @@ def handle_timer_input() -> None:
             return
 
         gr.draw_clear()
-        gr.draw_text((x_pos, y_pos - 100), f"{translator.translate('Set')}: {translator.translate(current_set)}", font=30, anchor="mm")
+        gr.draw_text((x_pos, y_pos - 100), f"{translator.translate('Set')}: {translator.translate(current_set)}", font=36, anchor="mm")
         gr.draw_text((x_pos, y_pos - 25), f"{hours:02d}:{minutes:02d}:{seconds:02d}", font=60, anchor="mm")
-        gr.draw_text((x_pos, y_pos + 50), f"{translator.translate('At the end')}: {translator.translate(end_time)}", font=30, anchor="mm")
-        gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press DY to adjust, DX to switch setting')}", font=15, anchor="mm")
-        gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press START to start, M/F to Exit')}", font=15, anchor="mm")
+        gr.draw_text((x_pos, y_pos + 50), f"{translator.translate('At the end')}: {translator.translate(end_time)}", font=36, anchor="mm")
+        gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press DY to adjust, DX to switch setting')}", font=21, anchor="mm")
+        gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press START to start, M/F to Exit')}", font=21, anchor="mm")
         gr.draw_paint()
 
     time_text_width = gr.get_text_width("00:00:00", font=100)
@@ -274,13 +274,13 @@ def handle_timer_input() -> None:
             time_str = f"{remaining_hours:02d}:{remaining_minutes:02d}:{remaining_seconds:02d}"
         
             gr.draw_clear()
-            gr.draw_text((x_pos, y_pos-100), f"{translator.translate('TIMER')}", font=30, anchor="mm")
+            gr.draw_text((x_pos, y_pos-100), f"{translator.translate('TIMER')}", font=36, anchor="mm")
             gr.draw_text((x_time_pos, y_pos), time_str, clock=1, font=100, color=gr.colorBlue, anchor="lm")
             gr.draw_paint()
         
         if remaining_time == 0 and not countdown_finished:
             countdown_finished = True
-            gr.draw_text((x_pos, y_pos+100), f"{translator.translate('Timer finished!')}", font=30, anchor="mm")
+            gr.draw_text((x_pos, y_pos+100), f"{translator.translate('Timer finished!')}", font=36, anchor="mm")
             gr.draw_paint()
         elif input.slide_key():
             current_window = "console"
@@ -303,7 +303,7 @@ def handle_stopwatch_input() -> None:
     x_pos = x_size // 2
     y_pos = y_size // 2
     time_text_width = gr.get_text_width("00:00:00", font=100)
-    time_text_width2 = gr.get_text_width(".00", font=50)
+    time_text_width2 = gr.get_text_width(".00", font=56)
     x_time_pos = (x_size - time_text_width) // 2
 
     start_time = None
@@ -369,12 +369,12 @@ def handle_stopwatch_input() -> None:
         time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
         gr.draw_clear()
-        gr.draw_text((x_pos, y_pos - 150), f"{translator.translate('STOPWATCH')}", font=30, anchor="mm")
+        gr.draw_text((x_pos, y_pos - 150), f"{translator.translate('STOPWATCH')}", font=36, anchor="mm")
         gr.draw_text((x_time_pos, y_pos-50), time_str, clock=1, font=100, color=gr.colorRed, anchor="lm")
-        gr.draw_text((x_time_pos+time_text_width - time_text_width2, y_pos+50), f"{milliseconds:02d}", clock=1, font=50, color=gr.colorRed, anchor="lm")
+        gr.draw_text((x_time_pos+time_text_width - time_text_width2, y_pos+50), f"{milliseconds:02d}", clock=1, font=56, color=gr.colorRed, anchor="lm")
 
-        gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press START to start/stop, SELECT to reset')}", font=15, anchor="mm")
-        gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press M/F to Exit')}", font=15, anchor="mm")
+        gr.draw_text((x_pos, y_pos + 100), f"{translator.translate('Press START to start/stop, SELECT to reset')}", font=21, anchor="mm")
+        gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press M/F to Exit')}", font=21, anchor="mm")
 
         gr.draw_paint()
 
@@ -382,7 +382,7 @@ def handle_stopwatch_input() -> None:
 def button_circle(pos: tuple[int, int], button: str, text: str, color=gr.colorBlueD1) -> None:
     gr.draw_circle(pos, 25, fill=color)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
@@ -390,7 +390,7 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
