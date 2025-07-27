@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import app
 import threading
 from pathlib import Path
