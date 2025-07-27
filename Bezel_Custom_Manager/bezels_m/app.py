@@ -103,7 +103,7 @@ def load_console_menu() -> None:
     gr.draw_clear()
 
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('Bezel Custom Manager')} {ver}", 17, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('Bezel Custom Manager')} {ver}", font=23, anchor="mm")
 
     if len(available_systems) > 1:
         start_idx = int(selected_position / max_elem) * max_elem
@@ -237,7 +237,7 @@ def load_cfg_menu() -> None:
     gr.draw_text(
         (x_size / 2, 20),
         f"{selected_system} - {translator.translate('bezels')}: {len(roms_list)} | {translator.translate('Current Settings')}: {overlay_name}",
-        15,
+        font=21,
         anchor="mm",
     )
 
@@ -312,7 +312,7 @@ def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> Non
 def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
     gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
@@ -320,4 +320,4 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
