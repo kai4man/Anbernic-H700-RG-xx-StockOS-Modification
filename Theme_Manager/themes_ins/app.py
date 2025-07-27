@@ -179,7 +179,7 @@ def load_console_menu() -> None:
     help_console = help_info.get(selected_position)
     gr.draw_clear()
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 110], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('Themes Manager')} {ver}", 17, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('Themes Manager')} {ver}", font=23, anchor="mm")
     gr.draw_help(
         f"{translator.translate(help_console)}", fill=None, outline=gr.colorBlueD1
     )
@@ -288,7 +288,7 @@ def load_theme_menu() -> None:
     gr.draw_text(
         (x_size / 2, 20),
         f"{translator.translate(selected_system)} : {theme_selected_position + 1} {translator.translate('of')} {len(theme_list)}",
-        15,
+        font=21,
         anchor="mm",
     )
     gr.draw_help(
@@ -389,7 +389,7 @@ def load_logo_menu() -> None:
     gr.draw_text(
         (x_size / 2, 20),
         f"{translator.translate(selected_system)} : {logo_selected_position + 1} {translator.translate('of')} {len(logo_list)}",
-        15,
+        font=21,
         anchor="mm",
     )
     gr.draw_help(
@@ -433,7 +433,7 @@ def load_help_menu() -> None:
     gr.draw_text((x_size / 2, 20), f"{translator.translate('-Help-')}", anchor="mm")
 
     gr.draw_text(
-        (x_size / 2, y_size / 2), f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", anchor="mm", font=13
+        (x_size / 2, y_size / 2), f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", anchor="mm", font=19
     )
 
     button_circle((20, button_y), "B", f"{translator.translate('Back')}")
@@ -453,7 +453,7 @@ def menu_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> No
 def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
     gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
@@ -461,4 +461,4 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
