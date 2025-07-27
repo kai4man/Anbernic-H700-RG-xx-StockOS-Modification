@@ -1,0 +1,22 @@
+{
+  "No internet connection": "No se puede conectar a Internet, inténtelo\nnuevamente después de conectarse...",
+  "Select": "Seleccionar",
+  "Exit": "Salida",
+  "D. All": "Descargar todo",
+  "Back": "Atrás",
+  "Download": "Descargar",
+  "Tiny Scraper": "Tiny Scraper",
+  "Checking existing media...": "Comprobación de los medios existentes...",
+  "No roms missing media found...": "No se encontraron medios faltantes en ROM...",
+  "Scraping...": "Raspado...",
+  "Scraping completed": "Raspado completado",
+  "Scraping failed!": "Error al raspar!",
+  "Scraping": "Raspado",
+  "of": "de",
+  "Scraping completed! Success:": "¡El raspado se ha completado! ¡Éxito!:",
+  "Errors:": "Errores:",
+  "No roms found in TF": "No se encontraron roms en TF",
+  "Missing media:": "Medios faltantes:",
+  "reboot": "Reiniciando el sistema...",
+  "Roms:": "Roms:"
+}

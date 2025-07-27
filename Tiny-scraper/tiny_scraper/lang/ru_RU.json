@@ -1,0 +1,22 @@
+{
+  "No internet connection": "Невозможно подключиться к Интернету,\nповторите попытку после подключения...",
+  "Select": "Выбирать",
+  "Exit": "Выход",
+  "D. All": "Скачать все",
+  "Back": "Назад",
+  "Download": "Скачать",
+  "Tiny Scraper": "Tiny Scraper",
+  "Checking existing media...": "Проверка существующих носителей...",
+  "No roms missing media found...": "Не найдено ни одного отсутствующего носителя ромов...",
+  "Scraping...": "Соскоб...",
+  "Scraping completed": "Очистка завершена",
+  "Scraping failed!": "Скрапинг не удался!",
+  "Scraping": "Соскоб",
+  "of": "из",
+  "Scraping completed! Success:": "Скрапинг завершен! Успех:",
+  "Errors:": "Ошибки:",
+  "No roms found in TF": "Не найдено ни одного рома в TF",
+  "Missing media:": "Отсутствующие медиа:",
+  "reboot": "Перезагрузка системы...",
+  "Roms:": "Roms:"
+}

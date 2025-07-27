@@ -1,0 +1,22 @@
+{
+  "No internet connection": "Impossible de se connecter à Internet,\nveuillez réessayer après la connexion...",
+  "Select": "Sélectionner",
+  "Exit": "Sortie",
+  "D. All": "Télécharger tout",
+  "Back": "Dos",
+  "Download": "Télécharger",
+  "Tiny Scraper": "Tiny Scraper",
+  "Checking existing media...": "Vérification des supports existants...",
+  "No roms missing media found...": "Aucun support manquant de ROM n'a été trouvé...",
+  "Scraping...": "Grattage...",
+  "Scraping completed": "Grattage terminé",
+  "Scraping failed!": "Le grattage a échoué!",
+  "Scraping": "Grattage",
+  "of": "de",
+  "Scraping completed! Success:": "Scraping terminé! Succès:",
+  "Errors:": "Erreurs:",
+  "No roms found in TF": "Aucune rom trouvée dans TF",
+  "Missing media:": "Médias manquants:",
+  "reboot": "Redémarrage du système...",
+  "Roms:": "Roms:"
+}

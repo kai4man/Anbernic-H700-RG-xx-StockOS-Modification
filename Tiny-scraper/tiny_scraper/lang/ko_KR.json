@@ -1,0 +1,22 @@
+{
+  "No internet connection": "인터넷에 연결할 수 없습니다.\n연결 후 다시 시도하세요...",
+  "Select": "선택하다",
+  "Exit": "선택하다",
+  "D. All": "모두 다운로드",
+  "Back": "뒤쪽에",
+  "Download": "다운로드",
+  "Tiny Scraper": "Tiny Scraper",
+  "Checking existing media...": "기존 미디어 확인...",
+  "No roms missing media found...": "ROM이 없는 미디어를 찾을 수 없습니다...",
+  "Scraping...": "스크래핑...",
+  "Scraping completed": "스크래핑 완료",
+  "Scraping failed!": "스크래핑 실패!",
+  "Scraping": "스크래핑",
+  "of": "총",
+  "Scraping completed! Success:": "스크래핑 완료! 성공:",
+  "Errors:": "오류:",
+  "No roms found in TF": "Rom 을 찾을 수 없습니다 TF",
+  "Missing media:": "누락된 미디어:",
+  "reboot": "시스템 재시작...",
+  "Roms:": "Roms:"
+}
