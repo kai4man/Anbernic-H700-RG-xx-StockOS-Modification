@@ -96,25 +96,25 @@ def update():
     if hw_info == 1:
         y_base = 120
     draw_rectangle_r([10, 30 + y_base, screen_width-10, 80 + y_base], 8, fill="#0a0a1a", outline="#7f4f00")
-    draw_text((screen_width//2, 55 + y_base), translator.translate('System Monitor'), font=17, anchor="mm", color="#00ffff")
+    draw_text((screen_width//2, 55 + y_base), translator.translate('System Monitor'), font=23, anchor="mm", color="#00ffff")
     
     draw_rectangle_r([20, 90 + y_base, screen_width-20, 260 + y_base], 10, fill="#0a0a1a", outline="#7f4f00")
-    draw_text((40, 110 + y_base), translator.translate('Sensors list'), font=16, anchor="lm", color="#00ffff")
+    draw_text((40, 110 + y_base), translator.translate('Sensors list'), font=22, anchor="lm", color="#00ffff")
     
     sensors = get_sensors()
     y_offset = 140 + y_base
     for i, line in enumerate(sensors):
-        draw_text((40, y_offset + i*30), line, font=15, anchor="lm", color="#ffffff")
+        draw_text((40, y_offset + i*30), line, font=21, anchor="lm", color="#ffffff")
     
     battery_info = get_battery_info()
     if battery_info:
         bat_height = 40 + len(battery_info)*30
         draw_rectangle_r([20, 280 + y_base, screen_width-20, 290 + bat_height + y_base], 10, fill="#0a0a1a", outline="#7f4f00")
-        draw_text((40, 300 + y_base), translator.translate('Battery info'), font=16, anchor="lm", color="#00ffff")
+        draw_text((40, 300 + y_base), translator.translate('Battery info'), font=22, anchor="lm", color="#00ffff")
         
         y_offset = 330 + y_base
         for i, line in enumerate(battery_info):
-            draw_text((40, y_offset + i*30), line, font=15, anchor="lm", color="#ffffff")
+            draw_text((40, y_offset + i*30), line, font=21, anchor="lm", color="#ffffff")
     
     draw_rectangle([0, 0, screen_width, 15], fill="#7f4f00")
     draw_rectangle([0, screen_height-15, screen_width, screen_height], fill="#7f4f00")
