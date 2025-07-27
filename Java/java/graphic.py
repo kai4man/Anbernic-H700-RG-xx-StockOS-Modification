@@ -9,10 +9,13 @@ screen_width, screen_height, max_elem = SCREEN_RESOLUTIONS.get(hw_info, DEFAULT_
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
 
-fontFile = {17: ImageFont.truetype(FONT_PATH, 17),
-            15: ImageFont.truetype(FONT_PATH, 15),
-            13: ImageFont.truetype(FONT_PATH, 13),
-            11: ImageFont.truetype(FONT_PATH, 11)}
+script_dir = os.path.dirname(os.path.abspath(__file__))
+font_file = os.path.join(script_dir, 'font', 'font.ttf')
+sys_font = "/mnt/vendor/bin/default.ttf"
+if not os.path.exists(font_file):
+    font_file = sys_font
+fb_file = "/mnt/mod/ctrl/configs/fb.cfg"
+
 colorBlue = "#bb7200"
 colorBlueD1 = "#7f4f00"
 colorGray = "#292929"
@@ -25,8 +28,8 @@ activeDraw: ImageDraw.ImageDraw
 
 def get_fb_screeninfo():
     global fb_screeninfo
-    if os.path.exists('/mnt/mod/ctrl/configs/fb.cfg'):
-        with open('/mnt/mod/ctrl/configs/fb.cfg', 'rb') as file:
+    if os.path.exists(fb_file):
+        with open(fb_file, 'rb') as file:
             fb_screeninfo = file.read()
     elif hw_info == 1:
         fb_screeninfo = b'\xd0\x02\x00\x00\xd0\x02\x00\x00\xd0\x02\x00\x00\xa0\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00F_\x00\x008\x00\x00\x00J\x00\x00\x00\x0f\x00\x00\x00<\x00\x00\x00\n\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -90,9 +93,9 @@ def draw_clear():
     global activeDraw
     activeDraw.rectangle((0, 0, screen_width, screen_height), fill="black")
 
-def draw_text(position, text, font=15, color="white", **kwargs):
+def draw_text(position, text, font=21, color="white", **kwargs):
     global activeDraw
-    activeDraw.text(position, text, font=fontFile[font], fill=color, **kwargs)
+    activeDraw.text(position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs)
 
 def draw_rectangle(position, fill=None, outline=None, width=1):
     global activeDraw
@@ -121,14 +124,14 @@ def draw_log(text, fill="Black", outline="black", width=500):
 def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
     draw_circle(pos, 25, fill=colorBlueD1)
     draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
     draw_rectangle_r(
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=colorGrayL1
     )
     draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
 
 fb_screeninfo = get_fb_screeninfo()
 draw_start()
