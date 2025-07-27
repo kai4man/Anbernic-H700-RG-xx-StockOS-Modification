@@ -507,9 +507,9 @@ def load_screen_show_update_prompt() -> bool:
     global selected_position, selected_system, skip_input_check, current_version
 
     gr.draw_clear()
-    gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('New version of PortMaster is available'), font=17, anchor="mm")
-    gr.draw_text((x_size / 2, y_size / 2 - 30), f"{current_version} → {port_master_github_version}", font=13, anchor="mm")
-    gr.draw_text((x_size / 2, y_size / 2), translator.translate('Do you want to update?'), font=13, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('New version of PortMaster is available'), font=23, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2 - 30), f"{current_version} → {port_master_github_version}", font=19, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2), translator.translate('Do you want to update?'), font=19, anchor="mm")
     button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
     button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
     
@@ -544,8 +544,8 @@ def load_screen_update_port_master() -> None:
                 percent = min(100, downloaded * 100 / total_size)
                 
                 gr.draw_clear()
-                gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=17, anchor="mm")
-                gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Downloading the update'), font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=23, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Downloading the update'), font=19, anchor="mm")
                 
                 bar_width = x_size - 100
                 gr.draw_rectangle([50, y_size / 2 + 20, 50 + bar_width, y_size / 2 + 40], fill=gr.colorGrayL1)
@@ -554,21 +554,21 @@ def load_screen_update_port_master() -> None:
                 if filled_width > 0:
                     gr.draw_rectangle([50, y_size / 2 + 20, 50 + filled_width, y_size / 2 + 40], fill=gr.colorBlue)
                 
-                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=19, anchor="mm")
                 gr.draw_paint()
         except Exception as e:
             logger.error(f"Ошибка отображения прогресса: {str(e)}")
 
     try:
         gr.draw_clear()
-        gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=17, anchor="mm")
+        gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=23, anchor="mm")
         gr.draw_paint()
         
         socket.setdefaulttimeout(30)
         urllib.request.urlretrieve(GITHUB_DOWNLOAD_URL, TEMP_FILE, show_download_progress)
         
         gr.draw_clear()
-        gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Unpacking the PortMaster...'), font=17, anchor="mm")
+        gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Unpacking the PortMaster...'), font=23, anchor="mm")
         gr.draw_paint()
         
         libs_exists = False
@@ -593,8 +593,8 @@ def load_screen_update_port_master() -> None:
                 
                 percent = (i + 1) * 100 / total_files
                 gr.draw_clear()
-                gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Unpacking the PortMaster...'), font=17, anchor="mm")
-                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {os.path.basename(file)}", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Unpacking the PortMaster...'), font=23, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {os.path.basename(file)}", font=19, anchor="mm")
                 
                 bar_width = x_size - 100
                 gr.draw_rectangle([50, y_size / 2 + 20, 50 + bar_width, y_size / 2 + 40], fill=gr.colorGrayL1)
@@ -603,7 +603,7 @@ def load_screen_update_port_master() -> None:
                 if filled_width > 0:
                     gr.draw_rectangle([50, y_size / 2 + 20, 50 + filled_width, y_size / 2 + 40], fill=gr.colorBlue)
                 
-                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=19, anchor="mm")
                 gr.draw_paint()
         
         portmaster_dir = os.path.join(TEMP_DIR, "PortMaster")
@@ -653,7 +653,7 @@ def load_screen_update_port_master() -> None:
         os.environ['LC_MESSAGES'] = system_lang
 
         gr.draw_clear()
-        gr.draw_text((x_size / 2, y_size / 2), translator.translate('Update completed'), font=17, anchor="mm")
+        gr.draw_text((x_size / 2, y_size / 2), translator.translate('Update completed'), font=23, anchor="mm")
         gr.draw_paint()
 
         time.sleep(3)
@@ -705,7 +705,7 @@ def load_creen_runtimes() -> None:
     global selected_position, selected_system, skip_input_check
 
     gr.draw_clear()
-    gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Do you want to download runtimes for PortMaster?'), font=17, anchor="mm")
+    gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Do you want to download runtimes for PortMaster?'), font=23, anchor="mm")
     button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
     button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
     
@@ -757,7 +757,7 @@ def load_screen_process_download_runtimes() -> None:
 
     if not missing_files:
         gr.draw_clear()
-        gr.draw_text((x_size / 2, y_size / 2), "Все файлы рантаймов уже установлены", font=17, anchor="mm")
+        gr.draw_text((x_size / 2, y_size / 2), "Все файлы рантаймов уже установлены", font=23, anchor="mm")
         gr.draw_paint()
         time.sleep(3)
         return
@@ -779,9 +779,9 @@ def load_screen_process_download_runtimes() -> None:
                 percent = min(100, downloaded * 100 / total_size)
                 
                 gr.draw_clear()
-                gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=17, anchor="mm")
-                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=13, anchor="mm")
-                gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {success_count+1}/{total_files}", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {success_count+1}/{total_files}", font=19, anchor="mm")
                 
                 bar_width = x_size - 100
                 gr.draw_rectangle([50, y_size / 2 + 20, 50 + bar_width, y_size / 2 + 40], fill=gr.colorGrayL1)
@@ -790,7 +790,7 @@ def load_screen_process_download_runtimes() -> None:
                 if filled_width > 0:
                     gr.draw_rectangle([50, y_size / 2 + 20, 50 + filled_width, y_size / 2 + 40], fill=gr.colorBlue)
                 
-                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 + 30), f"{int(percent)}%", font=19, anchor="mm")
                 gr.draw_paint()
         except Exception as e:
             logger.error(f"Ошибка в функции обратного вызова: {str(e)}")
@@ -801,11 +801,11 @@ def load_screen_process_download_runtimes() -> None:
         
         try:
             gr.draw_clear()
-            gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=17, anchor="mm")
-            gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=13, anchor="mm")
-            gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {i+1}/{total_files}", font=13, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {i+1}/{total_files}", font=19, anchor="mm")
             gr.draw_rectangle([50, y_size / 2 + 20, 50 + (x_size - 100), y_size / 2 + 40], fill=gr.colorGrayL1)
-            gr.draw_text((x_size / 2, y_size / 2 + 30), "0%", font=13, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 + 30), "0%", font=19, anchor="mm")
             gr.draw_paint()
             
             socket.setdefaulttimeout(30)
@@ -842,18 +842,18 @@ def load_screen_process_download_runtimes() -> None:
     try:
         gr.draw_clear()
         if success_count > 0:
-            gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Downloaded files')}: {success_count} {translator.translate('Of')} {total_files}", font=17, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Downloaded files')}: {success_count} {translator.translate('Of')} {total_files}", font=23, anchor="mm")
             
             if failed_files:
-                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Failed to download')} {len(failed_files)} {translator.translate('Files')}", font=13, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Failed to download')} {len(failed_files)} {translator.translate('Files')}", font=19, anchor="mm")
                 
                 if len(failed_files) <= 5:
                     failed_str = ", ".join(failed_files)
                     if len(failed_str) > 60:
                         failed_str = failed_str[:57] + "..."
-                    gr.draw_text((x_size / 2, y_size / 2), failed_str, font=11, anchor="mm")
+                    gr.draw_text((x_size / 2, y_size / 2), failed_str, font=17, anchor="mm")
         else:
-            gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Failed to download runtimes')}", font=17, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Failed to download runtimes')}", font=23, anchor="mm")
             logger.error("Не удалось скачать рантаймы")
 
         gr.draw_paint()
@@ -1226,11 +1226,11 @@ def update() -> None:
 def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
     gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
     gr.draw_rectangle_r(
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
