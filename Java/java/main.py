@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import app
 from pathlib import Path
 from config import SCREEN_RESOLUTIONS, DEFAULT_RESOLUTION
