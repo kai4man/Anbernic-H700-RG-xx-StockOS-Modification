@@ -78,7 +78,7 @@ def load_menu_menu() -> None:
     all_menu = set.get_all_menus()
 
     if not all_menu:
-        gr.draw_text((x_size/2, y_size/2), translator.translate('menu.empty'), font=17, anchor='mm')
+        gr.draw_text((x_size/2, y_size/2), translator.translate('menu.empty'), font=23, anchor='mm')
         gr.draw_paint()
         time.sleep(2)
         current_window = "menu"
@@ -96,7 +96,7 @@ def load_menu_menu() -> None:
     gr.draw_clear()
 
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('Modify System Tools')} {ver} - {math.ceil((menu_selected_position + 1) / max_elem)} / {math.ceil(len(all_menu) / max_elem)}", font=17, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('Modify System Tools')} {ver} - {math.ceil((menu_selected_position + 1) / max_elem)} / {math.ceil(len(all_menu) / max_elem)}", font=23, anchor="mm")
 
     start_idx = int(menu_selected_position / max_elem) * max_elem
     end_idx = start_idx + max_elem
@@ -154,11 +154,11 @@ def load_options_menu() -> None:
             status_msg = f"{translator.translate('Error')}. {translator.translate(output)}\n{file}"
             status_color = gr.colorRed
         
-        gr.draw_log(f"{status_msg}", fill=status_color, outline=status_color, font=13)
+        gr.draw_log(f"{status_msg}", fill=status_color, outline=status_color, font=19)
         gr.draw_paint()
         time.sleep(3)
         if command == "tools:apps":
-            gr.draw_log(f"{translator.translate('Rebooting...')}", fill=status_color, outline=status_color, font=13)
+            gr.draw_log(f"{translator.translate('Rebooting...')}", fill=status_color, outline=status_color, font=19)
             gr.draw_paint()
             os.system('sync')
             os.system('reboot')
@@ -184,7 +184,7 @@ def load_options_menu() -> None:
     gr.draw_text(
         (x_size / 2, 20),
         f"{translator.translate(selected_menu)} - {translator.translate('options')} {opt_selected_position + 1} {translator.translate('of')} {len(opt_list)}",
-        font=17, anchor="mm",
+        font=23, anchor="mm",
     )
 
     start_idx = int(opt_selected_position / max_elem) * max_elem
@@ -223,7 +223,7 @@ def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> Non
 def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
     gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
@@ -231,4 +231,4 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
