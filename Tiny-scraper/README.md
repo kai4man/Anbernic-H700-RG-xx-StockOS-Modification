@@ -47,8 +47,8 @@ Edit `config.json` with your ScreenScraper.fr credentials:
 1. Connect your device to WiFi
 2. Navigate to the directory containing the files
 3. Run the application:
-   ```bash
-   python main.py /path/to/config.json
+   ```
+   tiny-scraper
    ```
 
 ## Controls
