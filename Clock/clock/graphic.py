@@ -15,13 +15,13 @@ screen_resolutions = {
 screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
-fb_screeninfo = None
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 clock_font_file = os.path.join(script_dir, 'font', 'font.ttf')
-font_file = "/usr/share/fonts/TTF/DejaVuSansMono.ttf"
+font_file = "/mnt/vendor/bin/default.ttf"
 if not os.path.exists(clock_font_file):
     clock_font_file = font_file
+fb_file = "/mnt/mod/ctrl/configs/fb.cfg"
 
 colorBlue = "#bb7200"
 colorBlueD1 = "#7f4f00"
@@ -39,8 +39,8 @@ activeDraw: ImageDraw.ImageDraw
 
 def get_fb_screeninfo():
     global fb_screeninfo
-    if os.path.exists('/mnt/mod/ctrl/configs/fb.cfg'):
-        with open('/mnt/mod/ctrl/configs/fb.cfg', 'rb') as file:
+    if os.path.exists(fb_file):
+        with open(fb_file, 'rb') as file:
             fb_screeninfo = file.read()
     elif hw_info == 1:
         fb_screeninfo = b'\xd0\x02\x00\x00\xd0\x02\x00\x00\xd0\x02\x00\x00\xa0\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00F_\x00\x008\x00\x00\x00J\x00\x00\x00\x0f\x00\x00\x00<\x00\x00\x00\n\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -120,7 +120,7 @@ def draw_clear():
     activeDraw.rectangle((0, 0, screen_width, screen_height), fill="black")
 
 
-def draw_text(position, text, clock=0, font=15, color="white", **kwargs):
+def draw_text(position, text, clock=0, font=21, color="white", **kwargs):
     global activeDraw, font_file, clock_font_file
     if clock == 1:
         new_font_file = clock_font_file
@@ -148,7 +148,7 @@ def draw_circle(position, radius, fill=None, outline="white"):
     )
 
 
-def draw_log(text, fill="Black", outline="black", width=500, font=15):
+def draw_log(text, fill="Black", outline="black", width=500, font=21):
     x = (screen_width - width) / 2
     y = (screen_height - 80) / 2
     rect_height = 80
