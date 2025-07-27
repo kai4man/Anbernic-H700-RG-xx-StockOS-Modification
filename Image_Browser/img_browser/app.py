@@ -134,7 +134,7 @@ def handle_browser_input() -> None:
 
     gr.draw_clear()
     gr.draw_rectangle_r([10, 40, x_size-10, y_size-40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((50, 20), f"{translator.translate('Path')}: {current_path}", 13, anchor="lm")
+    gr.draw_text((50, 20), f"{translator.translate('Path')}: {current_path}", font=19, anchor="lm")
     gr.draw_text(
         (button_x + 50, 20),
         f"{selected_index + 1} / {len(file_list)}",
@@ -215,7 +215,7 @@ def handle_slideshow_input():
 def button_circle(pos: tuple[int, int], button: str, text: str, color=gr.colorBlueD1) -> None:
     gr.draw_circle(pos, 25, fill=color)
     gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
 
 
 def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
@@ -223,7 +223,7 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
         (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=13, anchor="lm")
+    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
 
 def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
     gr.draw_rectangle_r(
