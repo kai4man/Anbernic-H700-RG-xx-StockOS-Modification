@@ -104,7 +104,7 @@ def draw_menu():
                 display_name = crop_text_to_width(name, max_name_w, fontFile[15])
             else:
                 display_name = name
-        draw_text((text_x, text_y), display_name, font=15, color=color)
+        draw_text((text_x, text_y), display_name, font=21, color=color)
 
     game_path = menu_games[selected]
     game_dir = os.path.dirname(game_path)
@@ -241,13 +241,13 @@ def show_download_progress(block_num, block_size, total_size):
             percent = 0
         
         draw_clear()
-        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Downloading JAVA')}", font=17, anchor="mm")
+        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Downloading JAVA')}", font=23, anchor="mm")
         bar_width = screen_width - 100
         draw_rectangle([50, screen_height // 2, 50 + bar_width, screen_height // 2 + 20], fill=colorGrayL1)
         filled_width = int(bar_width * percent / 100)
         if filled_width > 0:
             draw_rectangle([50, screen_height // 2, 50 + filled_width, screen_height // 2 + 20], fill=colorBlue)
-        draw_text((screen_width // 2, screen_height // 2 + 30), f"{int(percent)}%", font=13, anchor="mm")
+        draw_text((screen_width // 2, screen_height // 2 + 30), f"{int(percent)}%", font=19, anchor="mm")
         draw_paint()
     except Exception as e:
         pass
@@ -271,14 +271,14 @@ def download_and_extract_java():
             shutil.rmtree(MAIN_DIR)
 
         draw_clear()
-        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Downloading JAVA')}", font=17, anchor="mm")
+        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Downloading JAVA')}", font=23, anchor="mm")
         draw_paint()
         time.sleep(0.05)
         socket.setdefaulttimeout(30)
         urllib.request.urlretrieve(JAVA_ZIP_URL, TEMP_FILE, show_download_progress)
 
         draw_clear()
-        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Unpacking JAVA')}", font=17, anchor="mm")
+        draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Unpacking JAVA')}", font=23, anchor="mm")
         draw_paint()
         with zipfile.ZipFile(TEMP_FILE, 'r') as zip_ref:
             files = zip_ref.namelist()
@@ -287,13 +287,13 @@ def download_and_extract_java():
                 zip_ref.extract(file, EXTRACT_PATH)
                 percent = (i + 1) * 100 / total_files
                 draw_clear()
-                draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Unpacking JAVA')}", font=17, anchor="mm")
+                draw_text((screen_width // 2, screen_height // 2 - 30), f"{translator.translate('Unpacking JAVA')}", font=23, anchor="mm")
                 bar_width = screen_width - 100
                 draw_rectangle([50, screen_height // 2, 50 + bar_width, screen_height // 2 + 20], fill=colorGrayL1)
                 filled_width = int(bar_width * percent / 100)
                 if filled_width > 0:
                     draw_rectangle([50, screen_height // 2, 50 + filled_width, screen_height // 2 + 20], fill=colorBlue)
-                draw_text((screen_width // 2, screen_height // 2 + 30), f"{int(percent)}%", font=13, anchor="mm")
+                draw_text((screen_width // 2, screen_height // 2 + 30), f"{int(percent)}%", font=19, anchor="mm")
                 draw_paint()
 
         if os.path.exists(EMU_SRC):
@@ -306,7 +306,7 @@ def download_and_extract_java():
         if os.path.exists(TEMP_FILE):
             os.remove(TEMP_FILE)
         draw_clear()
-        draw_text((screen_width // 2, screen_height // 2), f"{translator.translate('JAVA is installed')}", font=17, anchor="mm")
+        draw_text((screen_width // 2, screen_height // 2), f"{translator.translate('JAVA is installed')}", font=23, anchor="mm")
         draw_paint()
         time.sleep(2)
     except Exception as e:
