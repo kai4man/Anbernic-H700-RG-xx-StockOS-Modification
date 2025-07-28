@@ -419,6 +419,18 @@ def other_update():
                 logger.error(f"Ошибка удаления pugwash.txt: {e}")
                 return False
             
+        love_file = os.path.join(LEGACY_PORTMASTER_DIR, "runtimes/love_11.5/love.txt")
+        if os.path.exists(love_file):
+            try:
+                with open(love_file, 'r') as file:
+                    content = file.read()
+                new_content = content.replace('$DEVICE_ARCH', 'aarch64')
+                with open(love_file, 'w') as file:
+                    file.write(new_content)
+            except Exception as e:
+                logger.error(f"Ошибка удаления love.txt: {e}")
+                return False
+            
         ports_fix()
         
         return True
@@ -777,10 +789,11 @@ def load_screen_process_download_runtimes() -> None:
             downloaded = block_num * block_size
             if total_size > 0:
                 percent = min(100, downloaded * 100 / total_size)
-                
+                mb_size = total_size / 1048576
                 gr.draw_clear()
-                gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
-                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 90), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
+                gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Size')}: {mb_size:.2f} MB", font=19, anchor="mm")
                 gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {success_count+1}/{total_files}", font=19, anchor="mm")
                 
                 bar_width = x_size - 100
@@ -801,8 +814,8 @@ def load_screen_process_download_runtimes() -> None:
         
         try:
             gr.draw_clear()
-            gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
-            gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 - 90), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 - 60), f"{translator.translate('File')}: {current_filename}", font=19, anchor="mm")
             gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Progress')}: {i+1}/{total_files}", font=19, anchor="mm")
             gr.draw_rectangle([50, y_size / 2 + 20, 50 + (x_size - 100), y_size / 2 + 40], fill=gr.colorGrayL1)
             gr.draw_text((x_size / 2, y_size / 2 + 30), "0%", font=19, anchor="mm")
@@ -842,7 +855,7 @@ def load_screen_process_download_runtimes() -> None:
     try:
         gr.draw_clear()
         if success_count > 0:
-            gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Downloaded files')}: {success_count} {translator.translate('Of')} {total_files}", font=23, anchor="mm")
+            gr.draw_text((x_size / 2, y_size / 2 + 30), f"{translator.translate('Downloaded files')}: {success_count} {translator.translate('Of')} {total_files}", font=23, anchor="mm")
             
             if failed_files:
                 gr.draw_text((x_size / 2, y_size / 2 - 30), f"{translator.translate('Failed to download')} {len(failed_files)} {translator.translate('Files')}", font=19, anchor="mm")
