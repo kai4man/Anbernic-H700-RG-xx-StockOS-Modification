@@ -554,11 +554,11 @@ def load_screen_update_port_master() -> None:
             downloaded = block_num * block_size
             if total_size > 0:
                 percent = min(100, downloaded * 100 / total_size)
-                
+                mb_size = total_size / 1048576
                 gr.draw_clear()
                 gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=23, anchor="mm")
                 gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Downloading the update'), font=19, anchor="mm")
-                
+                gr.draw_text((x_size / 2, y_size / 2), f"{translator.translate('Size')}: {mb_size:.2f} MB", font=19, anchor="mm")
                 bar_width = x_size - 100
                 gr.draw_rectangle([50, y_size / 2 + 20, 50 + bar_width, y_size / 2 + 40], fill=gr.colorGrayL1)
                 
