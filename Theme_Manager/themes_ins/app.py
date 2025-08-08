@@ -432,8 +432,8 @@ def load_help_menu() -> None:
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayL1, outline=None)
     gr.draw_text((x_size / 2, 20), f"{translator.translate('-Help-')}", anchor="mm")
 
-    gr.draw_text(
-        (x_size / 2, y_size / 2), f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", anchor="mm", font=19
+    gr.draw_help2(
+        f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", font=19
     )
 
     button_circle((20, button_y), "B", f"{translator.translate('Back')}")

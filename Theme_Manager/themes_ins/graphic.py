@@ -261,6 +261,62 @@ def draw_help(text, fill="Black", outline="black", font=21):
         draw_text((text_x, text_y), line, font, anchor="mm")
 
 
+def draw_help2(text, font=21):
+    rect_width = screen_width - 40
+    rect_height = 30
+    font_obj = ImageFont.truetype(font_file, font)
+    padding = 10
+    max_width = rect_width - 2 * padding
+
+    lines = []
+    current_line = ""
+    for word in text.split():
+        test_line = f"{current_line} {word}".strip() if current_line else word
+        bbox = font_obj.getbbox(test_line)
+        test_width = bbox[2] - bbox[0]
+        
+        if test_width <= max_width:
+            current_line = test_line
+        else:
+            if current_line:
+                lines.append(current_line)
+                current_line = ""
+            
+            bbox = font_obj.getbbox(word)
+            word_width = bbox[2] - bbox[0]
+            if word_width <= max_width:
+                current_line = word
+            else:
+                remaining = word
+                while remaining:
+                    substring = ""
+                    for char in remaining:
+                        temp_sub = substring + char
+                        bbox = font_obj.getbbox(temp_sub)
+                        temp_width = bbox[2] - bbox[0]
+                        if temp_width <= max_width:
+                            substring = temp_sub
+                        else:
+                            break
+                    if substring:
+                        lines.append(substring)
+                        remaining = remaining[len(substring):]
+                    else:
+                        break
+    if current_line:
+        lines.append(current_line)
+
+    ascent, descent = font_obj.getmetrics()
+    line_height = int((ascent + descent) * 1)
+    total_height = len(lines) * line_height
+    start_y = (total_height + rect_height) // 2
+
+    for i, line in enumerate(lines):
+        text_x = screen_width // 2
+        text_y = start_y + i * line_height +10
+        draw_text((text_x, text_y), line, font, anchor="mm")
+
+
 def display_image(image_path, target_x=0, target_y=0, target_width=None, target_height=None, rota=1):
     global activeImage
     if target_width is None:
