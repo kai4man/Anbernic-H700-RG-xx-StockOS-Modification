@@ -1247,3 +1247,4 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
     gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
+    
