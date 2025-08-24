@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from main import hw_info, system_lang
 from graphic import screen_resolutions
 from language import Translator
@@ -11,10 +13,10 @@ import json
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 import zipfile
 import logging
 import glob
+import requests
 
 program = os.path.dirname(os.path.abspath(__file__))
 
@@ -447,7 +449,7 @@ def clean_exit(*args):
         os.remove(TEMP_FILE)
 
     try:
-        logger.info("Настройка библиотек...")
+        logger.info("Настройка библиотеки...")
         for path in glob.glob('/usr/lib/aarch64-linux-gnu/libEGL.so*'):
             subprocess.run(["sudo", "rm", "-f", path], check=True)
         for path in glob.glob('/usr/lib/aarch64-linux-gnu/libGLES*'):
@@ -486,12 +488,13 @@ def check_port_master_version() -> bool:
 
     try:
 
-        socket.setdefaulttimeout(10)
-        with urllib.request.urlopen(GITHUB_API_URL) as response:
-            release_info = json.loads(response.read().decode())
-            global port_master_github_version, current_version
-            port_master_github_version = release_info.get("tag_name", "")
-            logger.info(f"Получена версия с GitHub: {port_master_github_version}")
+        response = requests.get(GITHUB_API_URL, timeout=10)
+        response.raise_for_status()
+        release_info = response.json()
+
+        global port_master_github_version, current_version
+        port_master_github_version = release_info.get("tag_name", "")
+        logger.info(f"Получена версия с GitHub: {port_master_github_version}")
         
         if not port_master_github_version:
             logger.error("Не удалось получить версию с GitHub")
@@ -547,8 +550,6 @@ def load_screen_update_port_master() -> None:
     os.makedirs(TEMP_DIR, exist_ok=True)
 
     def show_download_progress(block_num, block_size, total_size):
-        if block_num % 10 != 0 and block_num < 100:
-            return
 
         try:
             downloaded = block_num * block_size
@@ -575,10 +576,23 @@ def load_screen_update_port_master() -> None:
         gr.draw_clear()
         gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Downloading PortMaster...'), font=23, anchor="mm")
         gr.draw_paint()
-        
-        socket.setdefaulttimeout(30)
-        urllib.request.urlretrieve(GITHUB_DOWNLOAD_URL, TEMP_FILE, show_download_progress)
-        
+
+        response = requests.get(GITHUB_DOWNLOAD_URL, stream=True, timeout=30)
+        response.raise_for_status()
+
+        total_size = int(response.headers.get('content-length', 0))
+        block_size = 512 * 1024  # 512KB blocks
+        downloaded = 0
+        block_num = 0
+
+        with open(TEMP_FILE, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=block_size):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    block_num += 1
+                    show_download_progress(block_num, block_size, total_size)
+
         gr.draw_clear()
         gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('Unpacking the PortMaster...'), font=23, anchor="mm")
         gr.draw_paint()
@@ -679,9 +693,9 @@ def check_runtimes_version() -> bool:
     os.makedirs(libs_dir, exist_ok=True)
 
     try:
-        socket.setdefaulttimeout(10)
-        with urllib.request.urlopen(RUNTIMES_API_URL) as response:
-            release_info = json.loads(response.read().decode())
+        response = requests.get(RUNTIMES_API_URL, timeout=10)
+        response.raise_for_status()
+        release_info = response.json()
 
         download_urls = [asset["browser_download_url"] for asset in release_info.get("assets", [])]
         if not download_urls:
@@ -689,7 +703,7 @@ def check_runtimes_version() -> bool:
             return False
 
         installed_files = set(os.listdir(libs_dir)) if os.path.exists(libs_dir) else set()
-        
+
         missing_files = []
         for url in download_urls:
             filename = os.path.basename(url)
@@ -703,11 +717,8 @@ def check_runtimes_version() -> bool:
         logger.info(f"Найдено {len(missing_files)} отсутствующих файлов рантаймов")
         return False
 
-    except urllib.error.URLError as e:
-        logger.error(f"Ошибка при проверке версии рантаймов: {e.reason}")
-        return False
-    except socket.timeout:
-        logger.error("Таймаут при проверке версии рантаймов")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Ошибка при проверке версии рантаймов: {e}")
         return False
     except Exception as e:
         logger.error(f"Ошибка проверки рантаймов: {str(e)}")
@@ -748,8 +759,9 @@ def load_screen_process_download_runtimes() -> None:
     os.makedirs(libs_dir, exist_ok=True)
 
     try:
-        with urllib.request.urlopen(RUNTIMES_API_URL) as response:
-            release_info = json.loads(response.read().decode())
+        response = requests.get(RUNTIMES_API_URL, timeout=10)
+        response.raise_for_status()
+        release_info = response.json()
     except Exception as e:
         logger.error(f"Ошибка получения информации о рантаймах: {e}")
         return
@@ -781,10 +793,7 @@ def load_screen_process_download_runtimes() -> None:
     
     def show_progress(block_num, block_size, total_size):
         nonlocal current_filename
-        
-        if block_num % 10 != 0 and block_num < 100:
-            return
-        
+
         try:
             downloaded = block_num * block_size
             if total_size > 0:
@@ -811,7 +820,7 @@ def load_screen_process_download_runtimes() -> None:
     for i, url in enumerate(missing_files):
         current_filename = os.path.basename(url)
         output_file = os.path.join(temp_dir, current_filename)
-        
+
         try:
             gr.draw_clear()
             gr.draw_text((x_size / 2, y_size / 2 - 90), f"{translator.translate('Downloading runtimes...')}", font=23, anchor="mm")
@@ -820,12 +829,25 @@ def load_screen_process_download_runtimes() -> None:
             gr.draw_rectangle([50, y_size / 2 + 20, 50 + (x_size - 100), y_size / 2 + 40], fill=gr.colorGrayL1)
             gr.draw_text((x_size / 2, y_size / 2 + 30), "0%", font=19, anchor="mm")
             gr.draw_paint()
-            
-            socket.setdefaulttimeout(30)
-            urllib.request.urlretrieve(url, output_file, show_progress)
-            
+
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+
+            total_size = int(response.headers.get('content-length', 0))
+            block_size = 512 * 1024  # 512KB blocks
+            downloaded = 0
+            block_num = 0
+
+            with open(output_file, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=block_size):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        block_num += 1
+                        show_progress(block_num, block_size, total_size)
+
             file_size = os.path.getsize(output_file)
-            
+
             if file_size > 1000:
                 logger.info(f"Успешно скачан: {current_filename} ({file_size} байт)")
                 success_count += 1
@@ -834,12 +856,8 @@ def load_screen_process_download_runtimes() -> None:
                 os.remove(output_file)
                 failed_files.append(current_filename)
                 
-        except urllib.error.URLError as e:
-            err_msg = str(e.reason) if hasattr(e, 'reason') else str(e)
-            logger.error(f"Ошибка скачивания {current_filename}: {err_msg}")
-            failed_files.append(current_filename)
-        except socket.timeout:
-            logger.error(f"Таймаут при скачивании {current_filename}")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Ошибка скачивания {current_filename}: {e}")
             failed_files.append(current_filename)
         except Exception as e:
             logger.error(f"Ошибка скачивания {current_filename}: {str(e)}")
@@ -875,6 +893,7 @@ def load_screen_process_download_runtimes() -> None:
         logger.error(f"Ошибка при отображении результатов: {str(e)}")
     
     shutil.rmtree(temp_dir, ignore_errors=True)
+
 
 def ports_fix():
     try:
@@ -1247,4 +1266,3 @@ def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
     )
     gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
     gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
-    
