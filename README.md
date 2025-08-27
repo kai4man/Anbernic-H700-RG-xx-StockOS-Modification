@@ -1,43 +1,78 @@
-# Anbernic H700 Stock OS Modification
+# Anbernic H700 Handheld Stock OS Mod Online Updater Instructions
 
-Stock OS Modification is a project built on the StockOS of Anbernic, which is enhanced through modifications to achieve a better user experience.
+## Overview
 
-## Supported handheld models
-- RG35xx Plus (RGG35xx 2024)
-- RG35xx H
-- RG35xxSP
+This is an official modded system (Stock OS Mod) online upgrade tool designed for Anbernic H700 handheld devices (such as RG35xxH, RG34xx, RG28xx, etc.). It supports multiple languages and device models, provides a beautiful graphical interface, and can detect, download, and install system updates.
+
+## Supported Devices
+
+- RGcubexx
+- RG34xx / RG34xxSP
 - RG28xx
-- RG40xx H
-- RG40xx V
-- RGcube XX
-- RG34xx
-- RG34xx SP
-- RG35xx PRO
+- RG35xx+_P
+- RG35xxH
+- RG35xxSP
+- RG40xxH / RG40xxV
+- RG35xxPRO
 
-## Include content
+## Key Features
 
-1. Modified Stock OS images that support automatic partition expansion
-2. Package files that support lossless upgrades
-3. As a template package for customizing system themes
-4. Open source resources
-5. Other additional tools
+- ✅ Automatic detection of device model and system language
+- ✅ Check for system updates and application self-updates
+- ✅ Support for multi-server downloading with progress display
+- ✅ MD5 verification to ensure file integrity
+- ✅ Multi-language interface (Chinese, English, Japanese, Korean, etc.)
+- ✅ Professional dark theme UI, adapted for various screen resolutions
 
-## Important tips
-1. When using balenaEtcher flash TF under MacOS system, automatic partitioning will fail. It is recommended to use rufus flash TF under windows.
-   - Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/issues/68
-3. The 64-bit system is a new version that supports more ports games
+## Instructions
 
-## For more information, please visit
-https://github.com/cbepx-me/RG35xx-P-RG35xx-H-Modification/wiki
+### How to Run
 
-## Download
-### 1. 64-bit Stock OS Mod image:
-- RG28xx, RG34xx, RG34xx SP, RGcubexx, RG35xx PRO:
+- Copy the folder to the root directory of the TF card under 'Roms/APPS'
+- After starting the handheld device, enter the "App Center" and find and run this program
 
-https://drive.google.com/drive/folders/1zTtl8n5zpaRsxwIX7ncG-7sgwzf5Aym-?usp=sharing
-- RG35xx PLUS (RG35xx 2024), RG35xx H, RG35xx SP, RG40xx H, RG40xx V:
+### Control Keys
 
-https://drive.google.com/drive/folders/1ilDbBQP8XB4IVQfhnxde8Diu0fQdDPI9?usp=sharing
+- `A` button: Confirm/Start update
+- `B` button: Back/Exit program
 
-### 2. 64-bit Stock OS Mod Upgrade Package & other:
-https://drive.google.com/drive/folders/1uwCkGX3H-K09pj0VbB6hkS8I0_qhzrGY?usp=sharing
+### Update Process
+
+1. Start the program, which automatically detects network connection;
+2. Check for system or application updates;
+3. If updates are available, display current version and available version;
+4. Press `A` button to start downloading updates;
+5. After download completes, automatically verify file integrity;
+6. After verification passes, automatically extract and prepare for installation;
+7. Prompt to restart the device to complete subsequent updates.
+
+## Precautions
+
+- Ensure sufficient battery power during update process (recommended above 50%);
+- Do not power off or force shutdown during update process;
+- If update fails, check `update.log` for detailed error information;
+
+## Multi-language Support
+
+The program supports the following language systems and automatically switches based on system settings:
+
+- Simplified Chinese (zh_CN)
+- Traditional Chinese (zh_TW)
+- English (en_US)
+- Japanese (ja_JP)
+- Korean (ko_KR)
+- Spanish (es_LA)
+- Russian (ru_RU)
+- German (de_DE)
+- French (fr_FR)
+- Portuguese (pt_BR)
+
+## Development Information
+
+- Author: cbepx-me
+- Project Address: [GitHub](https://github.com/cbepx-me/upgrade)
+- Version: v1.0.0 (Professional Edition)
+
+---
+
+If you need further optimization, please provide your modification requirements.
