@@ -8,7 +8,6 @@ This is an official modded system (Stock OS Mod) online upgrade tool designed fo
 
 - RGcubexx
 - RG34xx / RG34xxSP
-- RG28xx
 - RG35xx+_P
 - RG35xxH
 - RG35xxSP
