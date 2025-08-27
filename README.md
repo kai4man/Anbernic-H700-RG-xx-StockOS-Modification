@@ -32,10 +32,13 @@ https://github.com/cbepx-me/RG35xx-P-RG35xx-H-Modification/wiki
 ## Download
 ### 1. 64-bit Stock OS Mod image:
 - RG28xx, RG34xx, RG34xx SP, RGcubexx, RG35xx PRO:
+
 https://drive.google.com/drive/folders/1zTtl8n5zpaRsxwIX7ncG-7sgwzf5Aym-?usp=sharing
 
 - RG35xx PLUS (RG35xx 2024), RG35xx H, RG35xx SP, RG40xx H, RG40xx V:
+
 https://drive.google.com/drive/folders/1ilDbBQP8XB4IVQfhnxde8Diu0fQdDPI9?usp=sharing
 
 ### 2. 64-bit Stock OS Mod Upgrade Package & other:
+
 https://drive.google.com/drive/folders/1uwCkGX3H-K09pj0VbB6hkS8I0_qhzrGY?usp=sharing
