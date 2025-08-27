@@ -71,7 +71,7 @@ The program supports the following language systems and automatically switches b
 
 - Author: cbepx-me
 - Project Address: [GitHub](https://github.com/cbepx-me/upgrade)
-- Version: v1.0.0 (Professional Edition)
+- Version: v1.0.1 (Professional Edition)
 
 ---
 
