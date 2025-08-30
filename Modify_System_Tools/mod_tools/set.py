@@ -32,6 +32,7 @@ class Set:
                     "/mnt/data/.wifi",
                     "/mnt/data/dmenu/",
                     "/mnt/data/misc/",
+                    "/root/.local/state/syncthing/",
                     "/mnt/mod/ctrl/configs/*.cfg",
                     "/mnt/mod/ctrl/configs/*.txt",
                     "/mnt/vendor/bin/arcade-plus.csv",
