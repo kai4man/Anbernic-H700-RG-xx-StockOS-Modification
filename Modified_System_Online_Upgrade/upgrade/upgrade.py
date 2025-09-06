@@ -31,11 +31,14 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.0.1"
+cur_app_ver = "1.0.2"
 
 def ensure_requests():
     try:
         import requests
+        import urllib3
+        from urllib3.util import Retry
+        from requests.adapters import HTTPAdapter
         return True
     except ImportError:
         try:
@@ -43,7 +46,7 @@ def ensure_requests():
             module_file = os.path.join(program, "module.zip")
             with zipfile.ZipFile(module_file, 'r') as zip_ref:
                 zip_ref.extractall("/")
-            print("Successfully installed requests")
+            print("Successfully installed requests and urllib3")
             return True
         except Exception as e:
             print(f"Failed to install requests: {e}")
@@ -52,6 +55,9 @@ def ensure_requests():
 
 if ensure_requests():
     import requests
+    import urllib3
+    from urllib3.util import Retry
+    from requests.adapters import HTTPAdapter
 
 # =========================
 # Logging Setup
@@ -125,43 +131,47 @@ class Config:
     tmp_update: str = "/tmp/update.dep"
     tmp_md5: str = "/tmp/update.dep.MD5"
 
-    ip_server = {
-        "http://demo.ip-api.com/json": "China",
-        "https://ipinfo.io/json": "CN",
-        "https://api.ip.sb/geoip/": "China"
+    bytes_per_pixel: int = 4
+    keymap: Dict[int, str] = None
+
+    retry_config = {
+        'total': 3,  # 总重试次数
+        'backoff_factor': 0.5,  # 退避因子
+        'status_forcelist': [500, 502, 503, 504],  # 需要重试的HTTP状态码
+        'allowed_methods': ['GET', 'HEAD']  # 允许重试的HTTP方法
     }
-    info_url: str = (
-        "https://github.com/cbepx-me/upgrade/releases/download/source/update.txt"
-    )
+
+    mirrors = [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/cbepx-me/upgrade/releases/download/source/update.txt",
+            "region": "Global"
+        },
+        {
+            "name": "GitCode (China)",
+            "url": "https://gitcode.com/cbepx/upgrade/releases/download/source/update.txt",
+            "region": "CN"
+        }
+    ]
+    
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'
     }
-    ip_num = 0
-    for ip_url, result in ip_server.items():
+
+    fallback_mirror = mirrors[0]
+    speeds = []
+    for mirror in mirrors:
         try:
-            response = requests.get(ip_url, timeout=(3, 6), headers=headers)
-            response.raise_for_status()
-            data = response.json()
-            country = data.get("country", "")
-            LOGGER.info(f"From {ip_url} get country is: {country}")
-
-            if country == result:
-                info_url: str = ("https://gitcode.com/cbepx/upgrade/releases/download/source/update.txt")
-
-            break
-
-        except requests.exceptions.RequestException as e:
-            LOGGER.error(f"Error checking location: {e}")
-            ip_num += 1
-            continue
-
-    if ip_num == len(ip_server):
-        info_url: str = ("https://gitcode.com/cbepx/upgrade/releases/download/source/update.txt")
-    LOGGER.info(f"Using {info_url}.")
-
-    bytes_per_pixel: int = 4
-
-    keymap: Dict[int, str] = None
+            start = time.time()
+            requests.head(mirror["url"], timeout=3, headers=headers)
+            end = time.time() - start
+        except:
+            end = float('inf')
+        speeds.append((end, mirror))
+    speeds.sort(key=lambda x: x[0])
+    info_url = speeds[0][1]["url"] if speeds[0][0] != float('inf') else fallback_mirror["url"]
+    #LOGGER.info(f"Server List is: {speeds}")
+    LOGGER.info(f"Using: {info_url}")
 
     def __post_init__(self):
         if self.board_mapping is None:
@@ -552,9 +562,9 @@ class UIRenderer:
             self.text((bar_left + filled, y_center), progress_text, font=19, anchor="mm", color=self.cfg.COLOR_TEXT)
 
         if label_top:
-            self.text((self.x_size // 2, bar_top - 20), label_top, font=20, anchor="mm")
+            self.text((self.x_size // 2, bar_top - 20), label_top, font=23, anchor="mm")
         if label_bottom:
-            self.text((self.x_size // 2, bar_bottom + 15), label_bottom, font=16, anchor="mm",
+            self.text((self.x_size // 2, bar_bottom + 20), label_bottom, font=19, anchor="mm",
                       color=self.cfg.COLOR_TEXT_SECONDARY)
 
     def _blend_colors(self, color1: str, color2: str, ratio: float) -> str:
@@ -566,7 +576,6 @@ class UIRenderer:
         b = int(b1 + (b2 - b1) * ratio)
 
         return f"#{r:02x}{g:02x}{b:02x}"
-
 
 # =========================
 # Updater (network + verify + unzip)
@@ -581,28 +590,104 @@ class Updater:
         self.t = translator
         self.update_url: str = ""
         self.md5_url: str = ""
+        self.session = requests.Session()
+        self.session.headers.update(self.cfg.headers)
+
+        # 配置重试机制
+        retry = Retry(
+            total=self.cfg.retry_config['total'],
+            backoff_factor=self.cfg.retry_config['backoff_factor'],
+            status_forcelist=self.cfg.retry_config['status_forcelist'],
+            allowed_methods=self.cfg.retry_config['allowed_methods']
+        )
+
+        # 创建适配器并配置重试
+        adapter = HTTPAdapter(max_retries=retry)
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
+
+        self.session.headers.update(self.cfg.headers)
 
     def _download_file(self, url, local_path, progress_hook=None):
         try:
-            response = requests.get(url, stream=True, timeout=(60, 300))
+            # 检查文件是否已部分下载
+            file_size = 0
+            if os.path.exists(local_path):
+                file_size = os.path.getsize(local_path)
+
+            headers = self.cfg.headers.copy()
+            if file_size > 0:
+                headers['Range'] = f'bytes={file_size}-'
+                LOGGER.info("Resuming download from byte %s", file_size)
+
+            response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
+
+            # 检查服务器是否支持断点续传
+            if file_size > 0 and response.status_code == 416:  # Range Not Satisfiable
+                LOGGER.warning("Server doesn't support range requests, restarting download")
+                os.remove(local_path)
+                file_size = 0
+                headers.pop('Range', None)
+                response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
+
             response.raise_for_status()
 
+            # 获取文件总大小
             total_size = int(response.headers.get('content-length', 0))
+            if 'content-range' in response.headers:
+                # 如果服务器返回了内容范围，使用它来计算总大小
+                content_range = response.headers['content-range']
+                if '/' in content_range:
+                    total_size = int(content_range.split('/')[-1])
+
+            # 如果是续传，调整总大小
+            if file_size > 0 and total_size > file_size:
+                total_size = total_size - file_size
+            elif file_size > 0:
+                total_size = total_size  # 服务器可能返回的是剩余大小
+
             block_size = 512 * 1024  # 512KB block
-            downloaded = 0
+            downloaded = file_size
+            retry_count = 0
+            max_retries = 3
 
-            with open(local_path, 'wb') as f:
-                for data in response.iter_content(block_size):
-                    downloaded += len(data)
-                    f.write(data)
+            mode = 'ab' if file_size > 0 else 'wb'  # 续传用追加模式，新下载用写入模式
 
-                    if progress_hook and total_size > 0:
-                        percent = (downloaded / total_size) * 100
-                        progress_hook(
-                            downloaded // block_size,
-                            block_size,
-                            total_size
-                        )
+            with open(local_path, mode) as f:
+                while retry_count <= max_retries:
+                    try:
+                        for data in response.iter_content(block_size):
+                            downloaded += len(data)
+                            f.write(data)
+                            f.flush()  # 确保数据写入磁盘
+
+                            if progress_hook and total_size > 0:
+                                percent = (downloaded / (file_size + total_size)) * 100
+                                progress_hook(
+                                    (downloaded - file_size) // block_size,
+                                    block_size,
+                                    total_size
+                                )
+                        break  # 下载成功，跳出重试循环
+                    except (requests.exceptions.ChunkedEncodingError,
+                            requests.exceptions.ConnectionError) as e:
+                        retry_count += 1
+                        if retry_count > max_retries:
+                            raise e
+                        LOGGER.warning("Download interrupted, retrying (%s/%s): %s",
+                                       retry_count, max_retries, e)
+
+                        # 获取当前文件大小，准备续传
+                        current_size = os.path.getsize(local_path)
+                        headers['Range'] = f'bytes={current_size}-'
+
+                        # 等待一段时间后重试
+                        time.sleep(2 * retry_count)
+
+                        # 重新建立连接继续下载
+                        response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
+                        response.raise_for_status()
+                        continue
 
             return True
         except requests.exceptions.Timeout:
@@ -666,39 +751,68 @@ class Updater:
         update_info = ""
         update_url = ""
         md5_url = ""
-        try:
-            LOGGER.info("Downloading version info from %s", self.cfg.info_url)
-            urlretrieve(self.cfg.info_url, self.cfg.tmp_info)
-            if os.path.exists(self.cfg.tmp_info):
-                with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
-                    for line in f:
-                        if line.startswith(key):
-                            parts = line.split("=")
-                            if len(parts) > 1:
-                                new_ver = parts[1].strip()
-                        elif line.startswith(update_url_key):
-                            parts = line.split("=")
-                            if len(parts) > 1:
-                                update_url = parts[1].strip()
-                        elif line.startswith(md5_url_key):
-                            parts = line.split("=")
-                            if len(parts) > 1:
-                                md5_url = parts[1].strip()
-            LOGGER.info("Remote info -> ver: %s, update: %s, md5: %s", new_ver, update_url, md5_url)
+        max_retries = 3
+        retry_count = 0
 
-            if self.t.lang_code in [ "zh_CN", "zh_TW"]:
-                info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/info_zh_CN.txt"
-            else:
-                info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/info_en_US.txt"
-            LOGGER.info("Downloading update info from %s", info_url)
-            urlretrieve(info_url, self.cfg.tmp_info)
-            if os.path.exists(self.cfg.tmp_info):
-                with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
-                    update_info = f.read()
-        except (ContentTooShortError, URLError) as e:
-            LOGGER.error("Error downloading version info: %s", e)
-        except Exception as e:
-            LOGGER.error("Unexpected error processing version info: %s", e)
+        while retry_count <= max_retries:
+            try:
+                LOGGER.info("Downloading version info from %s (attempt %s/%s)",
+                            self.cfg.info_url, retry_count + 1, max_retries + 1)
+                response = self.session.get(self.cfg.info_url, timeout=10)
+                response.raise_for_status()
+
+                with open(self.cfg.tmp_info, "w", encoding="utf-8") as f:
+                    f.write(response.text)
+
+                if os.path.exists(self.cfg.tmp_info):
+                    with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
+                        for line in f:
+                            if line.startswith(key):
+                                parts = line.split("=")
+                                if len(parts) > 1:
+                                    new_ver = parts[1].strip()
+                            elif line.startswith(update_url_key):
+                                parts = line.split("=")
+                                if len(parts) > 1:
+                                    update_url = parts[1].strip()
+                            elif line.startswith(md5_url_key):
+                                parts = line.split("=")
+                                if len(parts) > 1:
+                                    md5_url = parts[1].strip()
+                LOGGER.info("Remote info -> ver: %s, update: %s, md5: %s", new_ver, update_url, md5_url)
+
+                # 获取更新信息
+                info_filename = "info_zh_CN.txt" if self.t.lang_code in ["zh_CN", "zh_TW"] else "info_en_US.txt"
+                info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/{info_filename}"
+
+                LOGGER.info("Downloading update info from %s (attempt %s/%s)",
+                            info_url, retry_count + 1, max_retries + 1)
+                response = self.session.get(info_url, timeout=10)
+                response.raise_for_status()
+
+                with open(self.cfg.tmp_info, "w", encoding="utf-8") as f:
+                    f.write(response.text)
+
+                if os.path.exists(self.cfg.tmp_info):
+                    with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
+                        update_info = f.read()
+
+                # 成功获取信息，跳出重试循环
+                break
+
+            except (ContentTooShortError, URLError) as e:
+                retry_count += 1
+                if retry_count > max_retries:
+                    LOGGER.error("Error downloading version info after %s attempts: %s", max_retries + 1, e)
+                    break
+                LOGGER.warning("Attempt %s failed, retrying in %s seconds: %s",
+                               retry_count, retry_count * 2, e)
+                time.sleep(retry_count * 2)  # 指数退避
+
+            except Exception as e:
+                LOGGER.error("Unexpected error processing version info: %s", e)
+                break
+
         self.update_url = update_url
         self.md5_url = md5_url
         return new_ver, update_info, update_url, md5_url
@@ -910,6 +1024,35 @@ class Updater:
 
         return lines
 
+    def _calculate_speed(self, downloaded: int) -> Tuple[str, str]:
+        current_time = time.time()
+        
+        if not hasattr(self, '_speed_data'):
+            self._speed_data = {
+                'start_time': current_time,
+                'last_time': current_time,
+                'last_downloaded': 0,
+                'speed_text': "..."
+            }
+        
+        time_diff = current_time - self._speed_data['last_time']
+        if time_diff >= 1.0:
+            downloaded_diff = downloaded - self._speed_data['last_downloaded']
+            download_speed = downloaded_diff / time_diff
+            
+            if download_speed >= 1024 * 1024:
+                speed_text = f"{download_speed / (1024 * 1024):.1f} MB/s"
+            elif download_speed >= 1024:
+                speed_text = f"{download_speed / 1024:.1f} KB/s"
+            else:
+                speed_text = f"{download_speed:.1f} B/s"
+            
+            self._speed_data['last_time'] = current_time
+            self._speed_data['last_downloaded'] = downloaded
+            self._speed_data['speed_text'] = speed_text
+        
+        return self._speed_data['speed_text']
+    
     def update_app(self, new_ver: str) -> None:
         ui = self.ui
         t = self.t
@@ -926,7 +1069,14 @@ class Updater:
                 if total_size > 0:
                     percent = min(100, downloaded * 100 / total_size)
                     label_top = t.t("Downloading App Files...")
-                    label_bottom = f"{downloaded // 1024} / {max(1, total_size // 1024)}KB"
+                    if total_size >= 1024*1024:
+                        unit_num = 1024*1024
+                        unit = "MB"
+                    else:
+                        unit_num = 1024
+                        unit = "KB"
+                    speed_display = self._calculate_speed(downloaded)
+                    label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
                     ui.clear()
                     ui.info_header(t.t("Update application"), t.t("Downloading update package"))
                     ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
@@ -1091,7 +1241,14 @@ class Updater:
                 if total_size > 0:
                     percent = min(100, downloaded * 100 / total_size)
                     label_top = t.t("Downloading Update Files...")
-                    label_bottom = f"{downloaded // 1024} / {max(1, total_size // 1024)}KB"
+                    if total_size >= 1024*1024:
+                        unit_num = 1024*1024
+                        unit = "MB"
+                    else:
+                        unit_num = 1024
+                        unit = "KB"
+                    speed_display = self._calculate_speed(downloaded)
+                    label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
                     ui.clear()
                     ui.info_header(t.t("System Update"), t.t("Downloading update package"))
                     ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
