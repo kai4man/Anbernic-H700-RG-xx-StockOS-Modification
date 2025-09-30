@@ -42,3 +42,7 @@ https://drive.google.com/drive/folders/1ilDbBQP8XB4IVQfhnxde8Diu0fQdDPI9?usp=sha
 ### 2. 64-bit Stock OS Mod Upgrade Package & other:
 
 https://drive.google.com/drive/folders/1uwCkGX3H-K09pj0VbB6hkS8I0_qhzrGY?usp=sharing
+
+### 3. RG28xx and RG35xx 2024 offline installation of PortMaster:
+
+https://drive.google.com/drive/folders/1JP4g8DuRsBq1LgPPKWBKh6Zt2VMt1EJn?usp=sharing
