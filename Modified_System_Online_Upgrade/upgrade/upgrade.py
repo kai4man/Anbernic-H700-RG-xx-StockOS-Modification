@@ -31,7 +31,7 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.0.2"
+cur_app_ver = "1.0.3"
 
 def ensure_requests():
     try:
@@ -135,10 +135,10 @@ class Config:
     keymap: Dict[int, str] = None
 
     retry_config = {
-        'total': 3,  # 总重试次数
-        'backoff_factor': 0.5,  # 退避因子
-        'status_forcelist': [500, 502, 503, 504],  # 需要重试的HTTP状态码
-        'allowed_methods': ['GET', 'HEAD']  # 允许重试的HTTP方法
+        'total': 3,  # Total retry count
+        'backoff_factor': 0.5,  # backoff factor
+        'status_forcelist': [500, 502, 503, 504],  # HTTP status code that requires a retry
+        'allowed_methods': ['GET', 'HEAD']  # HTTP methods that allow retries
     }
 
     mirrors = [
@@ -593,7 +593,7 @@ class Updater:
         self.session = requests.Session()
         self.session.headers.update(self.cfg.headers)
 
-        # 配置重试机制
+        # Configure retry mechanism
         retry = Retry(
             total=self.cfg.retry_config['total'],
             backoff_factor=self.cfg.retry_config['backoff_factor'],
@@ -601,7 +601,7 @@ class Updater:
             allowed_methods=self.cfg.retry_config['allowed_methods']
         )
 
-        # 创建适配器并配置重试
+        # Create an adapter and configure retry
         adapter = HTTPAdapter(max_retries=retry)
         self.session.mount('http://', adapter)
         self.session.mount('https://', adapter)
@@ -610,7 +610,6 @@ class Updater:
 
     def _download_file(self, url, local_path, progress_hook=None):
         try:
-            # 检查文件是否已部分下载
             file_size = 0
             if os.path.exists(local_path):
                 file_size = os.path.getsize(local_path)
@@ -622,7 +621,6 @@ class Updater:
 
             response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
 
-            # 检查服务器是否支持断点续传
             if file_size > 0 and response.status_code == 416:  # Range Not Satisfiable
                 LOGGER.warning("Server doesn't support range requests, restarting download")
                 os.remove(local_path)
@@ -632,26 +630,23 @@ class Updater:
 
             response.raise_for_status()
 
-            # 获取文件总大小
             total_size = int(response.headers.get('content-length', 0))
             if 'content-range' in response.headers:
-                # 如果服务器返回了内容范围，使用它来计算总大小
                 content_range = response.headers['content-range']
                 if '/' in content_range:
                     total_size = int(content_range.split('/')[-1])
 
-            # 如果是续传，调整总大小
             if file_size > 0 and total_size > file_size:
                 total_size = total_size - file_size
             elif file_size > 0:
-                total_size = total_size  # 服务器可能返回的是剩余大小
+                total_size = total_size  # The server may return the remaining size
 
             block_size = 512 * 1024  # 512KB block
             downloaded = file_size
             retry_count = 0
             max_retries = 3
 
-            mode = 'ab' if file_size > 0 else 'wb'  # 续传用追加模式，新下载用写入模式
+            mode = 'ab' if file_size > 0 else 'wb'
 
             with open(local_path, mode) as f:
                 while retry_count <= max_retries:
@@ -659,7 +654,7 @@ class Updater:
                         for data in response.iter_content(block_size):
                             downloaded += len(data)
                             f.write(data)
-                            f.flush()  # 确保数据写入磁盘
+                            f.flush()
 
                             if progress_hook and total_size > 0:
                                 percent = (downloaded / (file_size + total_size)) * 100
@@ -668,7 +663,7 @@ class Updater:
                                     block_size,
                                     total_size
                                 )
-                        break  # 下载成功，跳出重试循环
+                        break
                     except (requests.exceptions.ChunkedEncodingError,
                             requests.exceptions.ConnectionError) as e:
                         retry_count += 1
@@ -677,14 +672,11 @@ class Updater:
                         LOGGER.warning("Download interrupted, retrying (%s/%s): %s",
                                        retry_count, max_retries, e)
 
-                        # 获取当前文件大小，准备续传
                         current_size = os.path.getsize(local_path)
                         headers['Range'] = f'bytes={current_size}-'
 
-                        # 等待一段时间后重试
                         time.sleep(2 * retry_count)
 
-                        # 重新建立连接继续下载
                         response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
                         response.raise_for_status()
                         continue
@@ -781,7 +773,6 @@ class Updater:
                                     md5_url = parts[1].strip()
                 LOGGER.info("Remote info -> ver: %s, update: %s, md5: %s", new_ver, update_url, md5_url)
 
-                # 获取更新信息
                 info_filename = "info_zh_CN.txt" if self.t.lang_code in ["zh_CN", "zh_TW"] else "info_en_US.txt"
                 info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/{info_filename}"
 
@@ -790,14 +781,13 @@ class Updater:
                 response = self.session.get(info_url, timeout=10)
                 response.raise_for_status()
 
-                with open(self.cfg.tmp_info, "w", encoding="utf-8") as f:
-                    f.write(response.text)
+                with open(self.cfg.tmp_info, "wb") as f:
+                    f.write(response.content)
 
                 if os.path.exists(self.cfg.tmp_info):
                     with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
                         update_info = f.read()
 
-                # 成功获取信息，跳出重试循环
                 break
 
             except (ContentTooShortError, URLError) as e:
@@ -807,7 +797,7 @@ class Updater:
                     break
                 LOGGER.warning("Attempt %s failed, retrying in %s seconds: %s",
                                retry_count, retry_count * 2, e)
-                time.sleep(retry_count * 2)  # 指数退避
+                time.sleep(retry_count * 2)
 
             except Exception as e:
                 LOGGER.error("Unexpected error processing version info: %s", e)
@@ -1067,7 +1057,7 @@ class Updater:
             try:
                 downloaded = block_num * block_size
                 if total_size > 0:
-                    percent = min(100, downloaded * 100 / total_size)
+                    percent = min(100, downloaded * 100 // total_size)
                     label_top = t.t("Downloading App Files...")
                     if total_size >= 1024*1024:
                         unit_num = 1024*1024
@@ -1139,89 +1129,154 @@ class Updater:
         ui = self.ui
         t = self.t
 
-        ui.clear()
+        current_page = 0
 
-        content_top = 0
-        content_height = ui.y_size - content_top
+        def prepare_lines():
+            ui.clear()
+            content_top = 0
+            content_height = ui.y_size - content_top
 
-        panel_padding = 0
-        panel_width = ui.x_size - panel_padding * 2
-        panel_height = content_height - 60
-        ui.panel([panel_padding, content_top, panel_padding + panel_width, content_top + panel_height],
-                 title=t.t("Update Information"))
+            panel_padding = 0
+            panel_width = ui.x_size - panel_padding * 2
+            panel_height = content_height - 60
 
-        text_padding = 15
-        text_width = panel_width - text_padding * 2
-        text_x = panel_padding + text_padding
-        text_y = content_top + 50
+            text_padding = 15
+            text_width = panel_width - text_padding * 2
+            text_x = panel_padding + text_padding
 
-        font_size = 17
-        try:
-            font = ImageFont.truetype(ui.cfg.font_file, font_size)
-        except:
-            font = ImageFont.load_default()
+            font_size = 22
+            try:
+                font = ImageFont.truetype(ui.cfg.font_file, font_size)
+            except:
+                font = ImageFont.load_default()
 
-        lines = []
-        words = info.split()
-        current_line = []
+            lines = []
 
-        for word in words:
-            test_line = ' '.join(current_line + [word])
-            bbox = ui.active_draw.textbbox((0, 0), test_line, font=font)
-            width = bbox[2] - bbox[0]
+            paragraphs = info.split('\n')
 
-            if width <= text_width:
-                current_line.append(word)
-            else:
+            for paragraph in paragraphs:
+                if not paragraph.strip():
+                    lines.append('')
+                    continue
+
+                words = paragraph.split()
+                current_line = []
+
+                for word in words:
+                    test_line = ' '.join(current_line + [word]) if current_line else word
+                    bbox = ui.active_draw.textbbox((0, 0), test_line, font=font)
+                    line_width = bbox[2] - bbox[0]
+
+                    if line_width <= text_width:
+                        current_line.append(word)
+                    else:
+                        if current_line:
+                            lines.append(' '.join(current_line))
+
+                        word_bbox = ui.active_draw.textbbox((0, 0), word, font=font)
+                        word_width = word_bbox[2] - word_bbox[0]
+
+                        if word_width > text_width:
+                            chars = list(word)
+                            current_chars = []
+
+                            for char in chars:
+                                test_chars = ''.join(current_chars + [char])
+                                char_bbox = ui.active_draw.textbbox((0, 0), test_chars, font=font)
+                                char_width = char_bbox[2] - char_bbox[0]
+
+                                if char_width <= text_width:
+                                    current_chars.append(char)
+                                else:
+                                    if current_chars:
+                                        lines.append(''.join(current_chars))
+                                    current_chars = [char]
+
+                            if current_chars:
+                                current_line = [''.join(current_chars)]
+                            else:
+                                current_line = []
+                        else:
+                            current_line = [word]
+
                 if current_line:
                     lines.append(' '.join(current_line))
-                if ui.active_draw.textbbox((0, 0), word, font=font)[2] > text_width:
-                    chars = list(word)
-                    split_word = []
-                    current_chars = []
 
-                    for char in chars:
-                        test_chars = ''.join(current_chars + [char])
-                        char_width = ui.active_draw.textbbox((0, 0), test_chars, font=font)[2]
+            return lines, text_x, panel_height, text_width, font
 
-                        if char_width <= text_width:
-                            current_chars.append(char)
-                        else:
-                            if current_chars:
-                                split_word.append(''.join(current_chars))
-                            current_chars = [char]
+        def render_page(lines, text_x, panel_height, text_width, font, page):
+            ui.clear()
+            content_top = 0
+            content_height = ui.y_size - content_top
 
-                    if current_chars:
-                        split_word.append(''.join(current_chars))
+            panel_padding = 0
+            panel_width = ui.x_size - panel_padding * 2
+            panel_height_val = content_height - 60
 
-                    lines.extend(split_word)
-                else:
-                    current_line = [word]
+            ui.panel([panel_padding, content_top, panel_padding + panel_width, content_top + panel_height_val],
+                     title=t.t("Update Information"))
 
-        if current_line:
-            lines.append(' '.join(current_line))
+            text_y = content_top + 60
 
-        line_height = 25
-        max_lines = min(len(lines), (panel_height - 60) // line_height)
+            line_height = 30
+            max_lines_per_page = (panel_height_val - 80) // line_height
+            total_pages = (len(lines) + max_lines_per_page - 1) // max_lines_per_page
 
-        for i, line in enumerate(lines[:max_lines]):
-            y_pos = text_y + i * line_height
-            ui.text((text_x, y_pos), line, font=font_size, anchor="lm")
+            page = max(0, min(page, total_pages - 1))
 
-        if len(lines) > max_lines:
-            more_text = f"... ({len(lines) - max_lines} {t.t('more lines')})"
-            ui.text((text_x, text_y + max_lines * line_height), more_text, font=18,
-                    anchor="lm", color=ui.cfg.COLOR_TEXT_SECONDARY)
+            start_line = page * max_lines_per_page
+            end_line = min(start_line + max_lines_per_page, len(lines))
 
-        button_y = ui.y_size - 50
-        button_width = 140
-        button_height = 36
-        exit_x = ui.x_size - button_width - 20
-        ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
-                  self.t.t("Exit"), "B", True)
-        ui.paint()
+            for i, line in enumerate(lines[start_line:end_line]):
+                y_pos = text_y + i * line_height
 
-        while 1:
+                if line:
+                    bbox = ui.active_draw.textbbox((0, 0), line, font=font)
+                    line_width = bbox[2] - bbox[0]
+                    if line_width > text_width:
+                        truncated_line = line
+                        while truncated_line and ui.active_draw.textbbox((0, 0), truncated_line + "...", font=font)[
+                            2] > text_width:
+                            truncated_line = truncated_line[:-1]
+                        line = truncated_line + "..."
+
+                ui.text((text_x, y_pos), line, font=22, anchor="lm")
+
+            if total_pages > 1:
+                page_info = f"{page + 1}/{total_pages}"
+                page_x = ui.x_size - 20
+                ui.text((page_x, text_y - 15), page_info, font=18,
+                        color=ui.cfg.COLOR_TEXT_SECONDARY, anchor="rm")
+
+            button_y = ui.y_size - 50
+            button_width = 140
+            button_height = 36
+
+            if total_pages > 1:
+                prev_x = 20
+                ui.button([prev_x, button_y, prev_x + button_width, button_y + button_height],
+                              t.t("Previous"), "L1", True)
+
+                next_x = 30 + button_width
+                ui.button([next_x, button_y, next_x + button_width, button_y + button_height],
+                              t.t("Next"), "R1", True)
+                exit_x = ui.x_size - button_width - 20
+                ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
+                              t.t("Exit"), "B", True)
+            else:
+                exit_x = ui.x_size - button_width - 20
+                ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
+                          t.t("Exit"), "B", True)
+
+            ui.paint()
+            return max_lines_per_page, total_pages, page
+
+        lines, text_x, panel_height, text_width, font = prepare_lines()
+        lines_per_page, total_pages, current_page = render_page(
+            lines, text_x, panel_height, text_width, font, current_page
+        )
+
+        while True:
             if self.skip_first_input:
                 self.input.reset()
                 self.skip_first_input = False
@@ -1230,8 +1285,19 @@ class Updater:
 
             if self.input.is_key("B"):
                 return
+            elif total_pages > 1:
+                if self.input.is_key("L1") and current_page > 0:
+                    current_page -= 1
+                    lines_per_page, total_pages, current_page = render_page(
+                        lines, text_x, panel_height, text_width, font, current_page
+                    )
+                elif self.input.is_key("R1") and current_page < total_pages - 1:
+                    current_page += 1
+                    lines_per_page, total_pages, current_page = render_page(
+                        lines, text_x, panel_height, text_width, font, current_page
+                    )
 
-    def start_update(self) -> None:
+    def start_update(self, append_active = False) -> None:
         ui = self.ui
         t = self.t
 
@@ -1239,7 +1305,7 @@ class Updater:
             try:
                 downloaded = block_num * block_size
                 if total_size > 0:
-                    percent = min(100, downloaded * 100 / total_size)
+                    percent = min(100, downloaded * 100 // total_size)
                     label_top = t.t("Downloading Update Files...")
                     if total_size >= 1024*1024:
                         unit_num = 1024*1024
@@ -1298,10 +1364,12 @@ class Updater:
 
         if down_md5 and check_md5 and down_md5 == check_md5:
             LOGGER.info("MD5 verification successful")
-            if self.unpack_zip(self.cfg.tmp_update, "/mnt/mod") == 0:
+            target_path = "/mnt/mmc" if append_active else "/mnt/mod"
+            autostart = False if append_active else True
+            if self.unpack_zip(self.cfg.tmp_update, target_path) == 0:
                 self.draw_message_center(t.t("System Update"), t.t("Ready, start upgrading..."), "✔", "success")
                 time.sleep(3)
-                MainApp.reboot(self.ui, self.cfg)
+                MainApp.reboot(self.ui, self.cfg, autostart)
             else:
                 LOGGER.error("Error unpacking update file")
                 self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖", "error")
@@ -1408,24 +1476,26 @@ class MainApp:
             sys.exit(code)
 
     @staticmethod
-    def reboot(ui: UIRenderer, cfg: Config) -> None:
+    def reboot(ui: UIRenderer, cfg: Config, auto = False) -> None:
         LOGGER.info("Rebooting system")
         try:
             for p in (cfg.tmp_info, cfg.tmp_update, cfg.tmp_md5):
                 if os.path.exists(p):
                     os.remove(p)
-            update_dir = "/mnt/mod/ctrl"
-            os.makedirs(update_dir, exist_ok=True)
-            update_script_path = os.path.join(update_dir, "autostart")
-            update_script_content = """#!/bin/bash
+            if auto:
+                update_dir = "/mnt/mod/ctrl"
+                os.makedirs(update_dir, exist_ok=True)
+                update_script_path = os.path.join(update_dir, "autostart")
+                update_script_content = """#!/bin/bash
 
 if [ -f /mnt/mod/update/update.sh ]; then
-    chmod +x /mnt/mod/update/update.sh
-    /mnt/mod/update/update.sh
+  chmod +x /mnt/mod/update/update.sh
+  /mnt/mod/update/update.sh
 fi
 """
-            with open(update_script_path, "w") as f:
-                f.write(update_script_content)
+                with open(update_script_path, "w") as f:
+                    f.write(update_script_content)
+
             ui.draw_end()
             os.sync()
             os.system("reboot")
@@ -1470,26 +1540,36 @@ fi
         )
 
         update_active = False
+        append_active = False
         new_app_ver = "Unknown"
         cur_ver = "Unknown"
         new_ver = "Unknown"
         update_info = "Unknown"
+        data_ver = "Unknown"
 
         new_app_ver, app_info, app_update_url, app_md5_url = self.updater.fetch_remote_info(
             "app_ver", "app_info", "app_update_url", "app_md5_url"
         )
-        if new_app_ver != "Unknown" and cur_app_ver != new_app_ver and bool(app_update_url):
+        if new_app_ver != "Unknown" and cur_app_ver < new_app_ver and bool(app_update_url):
             self.updater.update_url = app_update_url
             self.updater.md5_url = app_md5_url
             self.updater.update_app(new_app_ver)
 
         cur_ver = self.updater.read_current_version()
         new_ver, update_info, update_url, md5_url = self.updater.fetch_remote_info()
-        update_active = (
-                cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver != new_ver and bool(update_url)
-        )
-        self.updater.update_url = update_url
-        self.updater.md5_url = md5_url
+        if cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < "3.7.0" and bool(update_url):
+            update_active = True
+            self.updater.update_url = update_url
+            self.updater.md5_url = md5_url
+        else:
+            new_ver, update_info, update_url, md5_url = self.updater.fetch_remote_info(
+            "data_ver", "app_info", "data_update_url", "data_md5_url")
+            update_active = (
+                    cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < new_ver and bool(update_url)
+            )
+            append_active = True
+            self.updater.update_url = update_url
+            self.updater.md5_url = md5_url
 
         while True:
             try:
@@ -1505,7 +1585,7 @@ fi
                     MainApp.exit_cleanup(0, self.ui, self.cfg)
 
                 elif update_active and self.input.is_key("A"):
-                    self.updater.start_update()
+                    self.updater.start_update(append_active)
 
                 elif update_active and self.input.is_key("Y"):
                     self.updater.show_info(update_info)
