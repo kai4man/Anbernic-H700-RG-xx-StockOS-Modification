@@ -277,7 +277,9 @@ def check_and_update_harbour():
             if 'self.uninstall_image(port_info)' not in content:
                 for i, line in enumerate(lines):
                     if 'self.callback.message_box(_("Successfully uninstalled {port_name}").format(port_name=port_info_name))' in line:
-                        lines.insert(i + 1, '        self.uninstall_image(port_info)')
+                        leading_spaces = line[:len(line) - len(line.lstrip())]
+                        new_line = leading_spaces + 'self.uninstall_image(port_info)'
+                        lines.insert(i + 1, new_line)
                         changes_made = True
                         break
             
