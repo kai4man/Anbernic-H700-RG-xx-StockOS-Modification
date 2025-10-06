@@ -31,7 +31,11 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
+<<<<<<< Updated upstream
 cur_app_ver = "1.0.4"
+=======
+cur_app_ver = "1.0.5"
+>>>>>>> Stashed changes
 
 def ensure_requests():
     try:
@@ -123,6 +127,7 @@ class Config:
         font_file: str = "/mnt/vendor/bin/default.ttf"
 
     ver_cfg_path: str = "/mnt/mod/ctrl/configs/ver.cfg"
+    os_ver_cfg_path: str = "/mnt/vendor/oem/version.ini"
     fb_cfg_path: str = "/mnt/mod/ctrl/configs/fb.cfg"
 
     tmp_app_update: str = "/tmp/app.tar.gz"
@@ -754,6 +759,18 @@ class Updater:
             LOGGER.error("Error reading version file: %s", e)
         return "Unknown"
 
+    def read_current_os_version(self) -> str:
+        try:
+            ver_file = Path(self.cfg.os_ver_cfg_path)
+            if ver_file.exists():
+                ver = ver_file.read_text().splitlines()[0]
+                LOGGER.info("Current OS version: %s", ver)
+                return ver
+            LOGGER.warning("OS version file not found")
+        except Exception as e:
+            LOGGER.error("Error reading OS version file: %s", e)
+        return "Unknown"
+
     def fetch_remote_info(self, key: str = "update_ver", update_info_key: str = "update_info",
                           update_url_key: str = "update_url",
                           md5_url_key: str = "md5_url") -> Tuple[str, str, str, str]:
@@ -825,7 +842,7 @@ class Updater:
         self.md5_url = md5_url
         return new_ver, update_info, update_url, md5_url
 
-    def draw_home(self, model: str, cur_ver: str, new_ver: str, actions_enabled: bool) -> None:
+    def draw_home(self, model: str, cur_ver: str, new_ver: str, os_cur_ver: str, actions_enabled: bool) -> None:
         ui = self.ui
         t = self.t
 
@@ -849,8 +866,9 @@ class Updater:
 
         ui.text((info_x, y_start + line_height), f"{t.t('Current Version')}: {cur_ver}", font=20, anchor="mm")
         ui.text((info_x, y_start + line_height * 2), f"{t.t('Available Version')}: {new_ver}", font=20, anchor="mm")
+        ui.text((info_x, y_start + line_height * 3), f"{t.t('OS date')}: {os_cur_ver}", font=20, anchor="mm")
 
-        status_y = y_start + line_height * 3 + 20
+        status_y = y_start + line_height * 3 + 40
         if actions_enabled:
             status_text = t.t("UPDATE AVAILABLE")
             ui.status_badge((info_x, status_y), status_text, "success")
@@ -1497,7 +1515,7 @@ class MainApp:
     def reboot(ui: UIRenderer, cfg: Config, auto = False) -> None:
         LOGGER.info("Rebooting system")
         try:
-            for p in (cfg.tmp_info, cfg.tmp_update, cfg.tmp_md5):
+            for p in (cfg.tmp_info, cfg.tmp_update, cfg.tmp_md5, "/mnt/mod/update.dep"):
                 if os.path.exists(p):
                     os.remove(p)
             if auto:
@@ -1574,8 +1592,13 @@ fi
             self.updater.update_app(new_app_ver)
 
         cur_ver = self.updater.read_current_version()
+        os_cur_ver = self.updater.read_current_os_version()
         new_ver, update_info, update_url, md5_url = self.updater.fetch_remote_info()
-        if cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < "3.7.0" and bool(update_url):
+        if (
+            cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < "3.7.0" and bool(update_url)
+        ) or (
+            cur_ver == "Unknown" and os_cur_ver >= "20250211" and new_ver != "Unknown" and bool(update_url)
+        ):
             update_active = True
             self.updater.update_url = update_url
             self.updater.md5_url = md5_url
@@ -1591,7 +1614,7 @@ fi
 
         while True:
             try:
-                self.updater.draw_home(self.board_info, cur_ver, new_ver, actions_enabled=update_active)
+                self.updater.draw_home(self.board_info, cur_ver, new_ver, os_cur_ver, actions_enabled=update_active)
 
                 if self.skip_first_input:
                     self.input.reset()
