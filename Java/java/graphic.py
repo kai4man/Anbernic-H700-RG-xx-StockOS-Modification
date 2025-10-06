@@ -9,11 +9,12 @@ screen_width, screen_height, max_elem = SCREEN_RESOLUTIONS.get(hw_info, DEFAULT_
 bytes_per_pixel = 4
 screen_size = screen_width * screen_height * bytes_per_pixel
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-font_file = os.path.join(script_dir, 'font', 'font.ttf')
-sys_font = "/mnt/vendor/bin/default.ttf"
-if not os.path.exists(font_file):
-    font_file = sys_font
+fontFile = {}
+fontFile[17] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 17)
+fontFile[15] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 15)
+fontFile[13] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 13)
+fontFile[11] = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSansMono.ttf", 11)
+
 fb_file = "/mnt/mod/ctrl/configs/fb.cfg"
 
 colorBlue = "#bb7200"
@@ -95,7 +96,7 @@ def draw_clear():
 
 def draw_text(position, text, font=21, color="white", **kwargs):
     global activeDraw
-    activeDraw.text(position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs)
+    activeDraw.text(position, text, font=fontFile[15], fill=color, **kwargs)
 
 def draw_rectangle(position, fill=None, outline=None, width=1):
     global activeDraw

@@ -69,6 +69,16 @@ def draw_menu():
     global menu_games, selected, scroll_offset
     draw_clear()
     screen_w, screen_h = screen_width, screen_height
+    
+    if not menu_games:
+        draw_text((screen_w // 2, screen_h // 2), translator.translate("No games found"), font=23, anchor="mm", color="white")
+        hint_y = screen_h - BOTTOM_PANEL_HEIGHT
+        x_a = 20
+        x_b = x_a + BUTTONS_GAP
+        button_circle((x_b, hint_y), "B", f"{translator.translate('Exit')}")
+        draw_paint()
+        return
+    
     list_w = int(screen_w * LIST_WIDTH_RATIO)
     preview_x = list_w + 10
     preview_w = screen_w - preview_x - 10

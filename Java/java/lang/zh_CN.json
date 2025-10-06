@@ -1,6 +1,7 @@
 {
   "Select": "选择",
   "Exit": "退出",
+  "No games found": "未找到游戏",
   "No internet connection": "未发现有效的网络连接, \n请联网后再试一次...",
   "JAVA not found. Requires loading": "未找到 JAVA。需要下载。",
   "Downloading JAVA": "正在下载 JAVA",

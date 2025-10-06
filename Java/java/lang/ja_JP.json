@@ -1,6 +1,7 @@
 {
   "Select": "選択",
   "Exit": "終了",
+  "No games found": "ゲームが見つかりません",
   "No internet connection": "インターネットに接続できません。\n接続後にもう一度お試しください...",
   "JAVA not found. Requires loading": "JAVAが見つかりません。ダウンロードが必要です。",
   "Downloading JAVA": "JAVAをダウンロード中",

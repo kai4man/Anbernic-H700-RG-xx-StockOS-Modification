@@ -1,6 +1,7 @@
 {
   "Select": "선택",
   "Exit": "종료",
+  "No games found": "게임을 찾을 수 없습니다",
   "No internet connection": "인터넷에 연결할 수 없습니다.\n연결 후 다시 시도하세요...",
   "JAVA not found. Requires loading": "JAVA를 찾을 수 없습니다. 다운로드가 필요합니다.",
   "Downloading JAVA": "JAVA 다운로드 중",

@@ -1,6 +1,7 @@
 {
   "Select": "Seleccionar",
   "Exit": "Salir",
+  "No games found": "No se encontraron juegos",
   "No internet connection": "No se puede conectar a Internet, inténtelo\nnuevamente después de conectarse...",
   "JAVA not found. Requires loading": "JAVA no encontrada. Se requiere descarga.",
   "Downloading JAVA": "Descargando JAVA",
