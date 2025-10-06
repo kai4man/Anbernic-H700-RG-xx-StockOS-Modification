@@ -127,6 +127,8 @@ def draw_menu():
     if img_path:
         try:
             img = Image.open(img_path).convert("RGBA")
+            r, g, b, a = img.split()
+            img = Image.merge('RGBA', (b, g, r, a))
             w, h = img.size
             scale = (preview_w - 2*padding) / w
             new_w = preview_w - 2*padding
