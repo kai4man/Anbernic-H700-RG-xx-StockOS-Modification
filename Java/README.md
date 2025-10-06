@@ -17,17 +17,18 @@ This application is a Java game launcher designed for Anbernic handheld gaming d
 - Internet connection (for initial Java setup)
 
 ## Installation
-1. Place the following files in your device's `/mnt/mmc/Emu/JAVA/` directory:
-   - `app.py`
-   - `config.py`
-   - `graphic.py`
-   - `input.py`
-   - `language.py`
-   - `main.py`
-   - `lang/` directory with translation files
+1. Place the following files in your device's `/mnt/mmc/Roms/APPS/` directory:
+   - `Java.sh`
+   - `java/app.py`
+   - `java/config.py`
+   - `java/graphic.py`
+   - `java/input.py`
+   - `java/language.py`
+   - `java/main.py`
+   - `java/lang/` directory with translation files
 
 2. Create game directories (will be auto-created on first run if missing):
-   ```bash
+   ```
    /mnt/mmc/Roms/JAVA/240x320
    /mnt/mmc/Roms/JAVA/320x240
    /mnt/sdcard/Roms/JAVA/240x320 (if SD card present)
@@ -37,7 +38,7 @@ This application is a Java game launcher designed for Anbernic handheld gaming d
 ## Usage Instructions
 
 ### Starting the Application
-- Execute `Java.sh` to launch the program
+- Execute `Java` to launch the program
 
 ### Interface Navigation
 - **UP/DOWN buttons**: Scroll through game list
@@ -67,9 +68,10 @@ The launcher supports these game resolutions:
 
 ## Directory Structure
 ```
-/mnt/mmc/
-├── Emu/
-│   └── JAVA/            # Main application folder
+/mnt/mmc/Roms/
+├── APPS/
+│   ├── Java.sh
+│   └── java/            # Main application folder
 │       ├── app.py
 │       ├── config.py
 │       ├── graphic.py
@@ -77,11 +79,10 @@ The launcher supports these game resolutions:
 │       ├── language.py
 │       ├── main.py
 │       └── lang/        # Language files
-├── Roms/
-│   └── JAVA/            # Game storage
-│       ├── 240x320/     # Portrait games
-│       ├── 320x240/     # Landscape games
-│       └── Imgs/        # Game preview images
+├── JAVA/            # Game storage
+│   ├── 240x320/     # Portrait games
+│   ├── 320x240/     # Landscape games
+│   └── Imgs/        # Game preview images
 ```
 
 ## Troubleshooting
@@ -116,28 +117,6 @@ The launcher supports these game resolutions:
 - RG40xxH
 - RG40xxV
 - RG35xxPRO
-
-## Customization
-Modify `config.py` to adjust:
-```python
-PADDING = 5                   # UI element spacing
-BORDER_RADIUS = 8             # Corner rounding
-LIST_WIDTH_RATIO = 0.6        # Game list width
-FONT_PATH = "/path/to/font"   # Custom font
-JAVA_CMD = "/path/to/java"    # Custom Java path
-```
-
-## Technical Notes
-- Java environment is installed to `/mnt/mmc/Emu/JAVA/jdk/`
-- Game launch command:
-  ```bash
-  java -jar freej2me-sdl.jar game.jar [width] [height] [fps]
-  ```
-- Language files use JSON format in `lang/` directory
-
-## Uninstallation
-1. Delete the `/mnt/mmc/Emu/JAVA/` directory
-2. Optional: Remove Java environment at `/mnt/mmc/Emu/JAVA/jdk/`
 ```
 
 This documentation covers all essential aspects of the application including installation, usage, troubleshooting, and customization options. The Markdown format makes it easy to read and can be directly used in GitHub or any Markdown viewer.
