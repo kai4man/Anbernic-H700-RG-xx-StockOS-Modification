@@ -31,11 +31,7 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-<<<<<<< Updated upstream
-cur_app_ver = "1.0.4"
-=======
 cur_app_ver = "1.0.5"
->>>>>>> Stashed changes
 
 def ensure_requests():
     try:
