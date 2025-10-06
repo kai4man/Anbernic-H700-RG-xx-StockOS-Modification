@@ -31,7 +31,7 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.0.3"
+cur_app_ver = "1.0.4"
 
 def ensure_requests():
     try:
@@ -125,11 +125,29 @@ class Config:
     ver_cfg_path: str = "/mnt/mod/ctrl/configs/ver.cfg"
     fb_cfg_path: str = "/mnt/mod/ctrl/configs/fb.cfg"
 
-    tmp_info: str = "/tmp/info.txt"
     tmp_app_update: str = "/tmp/app.tar.gz"
     tmp_app_md5: str = "/tmp/app.tar.gz.md5"
-    tmp_update: str = "/tmp/update.dep"
-    tmp_md5: str = "/tmp/update.dep.MD5"
+
+    tmp_list = [
+        "/dev/shm",
+        "/tmp",
+        "/mnt/mmc",
+        "/mnt/sdcard"
+    ]
+
+    free_space = []
+    for tmp in tmp_list:
+        if os.path.exists(tmp):
+            usage = shutil.disk_usage(tmp)
+            free_num = usage.free + 1 if tmp == "/tmp" else usage.free
+            free_space.append((free_num, tmp))
+    free_space.sort(key=lambda x: x[0], reverse=True)
+    tmp_path: str = free_space[0][1] if free_space[0][1] else "/tmp"
+    LOGGER.info(f"Using: {tmp_path}")
+
+    tmp_info: str = os.path.join(tmp_path, "info.txt")
+    tmp_update: str = os.path.join(tmp_path, "update.dep")
+    tmp_md5: str = os.path.join(tmp_path, "update.dep.MD5")
 
     bytes_per_pixel: int = 4
     keymap: Dict[int, str] = None
