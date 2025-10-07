@@ -31,7 +31,8 @@ from urllib.request import urlretrieve
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.0.5"
+cur_app_ver = "1.0.6"
+base_ver = "3.7.0"
 
 def ensure_requests():
     try:
@@ -767,13 +768,9 @@ class Updater:
             LOGGER.error("Error reading OS version file: %s", e)
         return "Unknown"
 
-    def fetch_remote_info(self, key: str = "update_ver", update_info_key: str = "update_info",
-                          update_url_key: str = "update_url",
-                          md5_url_key: str = "md5_url") -> Tuple[str, str, str, str]:
-        new_ver = ""
+    def fetch_remote_info(self) -> dict:
+        dit = {}
         update_info = ""
-        update_url = ""
-        md5_url = ""
         max_retries = 3
         retry_count = 0
 
@@ -790,19 +787,9 @@ class Updater:
                 if os.path.exists(self.cfg.tmp_info):
                     with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
                         for line in f:
-                            if line.startswith(key):
-                                parts = line.split("=")
-                                if len(parts) > 1:
-                                    new_ver = parts[1].strip()
-                            elif line.startswith(update_url_key):
-                                parts = line.split("=")
-                                if len(parts) > 1:
-                                    update_url = parts[1].strip()
-                            elif line.startswith(md5_url_key):
-                                parts = line.split("=")
-                                if len(parts) > 1:
-                                    md5_url = parts[1].strip()
-                LOGGER.info("Remote info -> ver: %s, update: %s, md5: %s", new_ver, update_url, md5_url)
+                            parts = line.split("=")
+                            if len(parts) > 1:
+                                dit[parts[0].strip()] = parts[1].strip()
 
                 info_filename = "info_zh_CN.txt" if self.t.lang_code in ["zh_CN", "zh_TW"] else "info_en_US.txt"
                 info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/{info_filename}"
@@ -818,6 +805,7 @@ class Updater:
                 if os.path.exists(self.cfg.tmp_info):
                     with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
                         update_info = f.read()
+                        dit['update_info'] = update_info
 
                 break
 
@@ -834,11 +822,10 @@ class Updater:
                 LOGGER.error("Unexpected error processing version info: %s", e)
                 break
 
-        self.update_url = update_url
-        self.md5_url = md5_url
-        return new_ver, update_info, update_url, md5_url
+        return dit
 
-    def draw_home(self, model: str, cur_ver: str, new_ver: str, os_cur_ver: str, actions_enabled: bool) -> None:
+    def draw_home(self, model: str, cur_ver: str, new_ver: str, os_cur_ver: str,
+                  actions_enabled: bool, append_enabled: bool) -> None:
         ui = self.ui
         t = self.t
 
@@ -865,7 +852,10 @@ class Updater:
         ui.text((info_x, y_start + line_height * 3), f"{t.t('OS date')}: {os_cur_ver}", font=20, anchor="mm")
 
         status_y = y_start + line_height * 3 + 40
-        if actions_enabled:
+        if append_enabled:
+            status_text = t.t("UPDATE AVAILABLE")
+            ui.status_badge((info_x, status_y), f"{status_text} +", "success")
+        elif actions_enabled:
             status_text = t.t("UPDATE AVAILABLE")
             ui.status_badge((info_x, status_y), status_text, "success")
         else:
@@ -876,7 +866,10 @@ class Updater:
         button_width = 140
         button_height = 36
 
-        exit_x = ui.x_size - button_width - 20
+        info_x = ui.x_size - button_width - 20
+        exit_x = ui.x_size // 2 - button_width
+        ui.button([info_x, button_y, info_x + button_width, button_y + button_height],
+                  t.t("Info"), "Y", True)
         ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
                   t.t("Exit"), "B", True)
 
@@ -884,9 +877,6 @@ class Updater:
             update_x = 20
             ui.button([update_x, button_y, update_x + button_width, button_y + button_height],
                       t.t("Update"), "A", True)
-            info_x = ui.x_size // 2 - button_width
-            ui.button([info_x, button_y, info_x + button_width, button_y + button_height],
-                      t.t("Info"), "Y", True)
 
             ui.text((ui.x_size // 2, status_y + 50),
                     t.t("Tip: Press A to start update"),
@@ -1557,11 +1547,19 @@ fi
         self.ui.paint()
         time.sleep(2)
 
+        cur_ver = "Unknown"
+        cur_ver = self.updater.read_current_version()
+
         if not self.updater.is_connected():
             self.updater.draw_message_center(
                 self.t.t("No Internet Connection"),
                 self.t.t("Please check your network settings"),
                 "✈", "error"
+            )
+            self.updater.draw_message_center(
+                self.t.t("Current Version"),
+                cur_ver,
+                "☯", "error"
             )
             MainApp.exit_cleanup(1, self.ui, self.cfg)
 
@@ -1573,44 +1571,54 @@ fi
 
         update_active = False
         append_active = False
-        new_app_ver = "Unknown"
-        cur_ver = "Unknown"
-        new_ver = "Unknown"
-        update_info = "Unknown"
-        data_ver = "Unknown"
 
-        new_app_ver, app_info, app_update_url, app_md5_url = self.updater.fetch_remote_info(
-            "app_ver", "app_info", "app_update_url", "app_md5_url"
-        )
-        if new_app_ver != "Unknown" and cur_app_ver < new_app_ver and bool(app_update_url):
+        url_dit = self.updater.fetch_remote_info()
+        for key, value in url_dit.items():
+            if key != "update_info":
+                LOGGER.info("%s -> %s", key, value)
+
+        app_ver = url_dit.get('app_ver', 'Unknown')
+        app_update_url = url_dit.get('app_update_url')
+        app_md5_url = url_dit.get('app_md5_url')
+        update_ver = url_dit.get('update_ver', 'Unknown')
+        update_url = url_dit.get('update_url')
+        md5_url = url_dit.get('md5_url')
+        data_ver = url_dit.get('data_ver', 'Unknown')
+        data_update_url = url_dit.get('data_update_url')
+        data_md5_url = url_dit.get('data_md5_url')
+        update_info = url_dit.get('update_info', 'Unknown')
+
+        if app_ver != "Unknown" and cur_app_ver < app_ver and bool(app_update_url):
             self.updater.update_url = app_update_url
             self.updater.md5_url = app_md5_url
-            self.updater.update_app(new_app_ver)
+            self.updater.update_app(app_ver)
 
-        cur_ver = self.updater.read_current_version()
+
         os_cur_ver = self.updater.read_current_os_version()
-        new_ver, update_info, update_url, md5_url = self.updater.fetch_remote_info()
         if (
-            cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < "3.7.0" and bool(update_url)
+            cur_ver != "Unknown" and update_ver != "Unknown" and cur_ver < base_ver and bool(update_url)
         ) or (
-            cur_ver == "Unknown" and os_cur_ver >= "20250211" and new_ver != "Unknown" and bool(update_url)
+            cur_ver == "Unknown" and os_cur_ver >= "20250211" and update_ver != "Unknown" and bool(update_url)
         ):
             update_active = True
             self.updater.update_url = update_url
             self.updater.md5_url = md5_url
-        else:
-            new_ver, update_info, update_url, md5_url = self.updater.fetch_remote_info(
-            "data_ver", "app_info", "data_update_url", "data_md5_url")
-            update_active = (
-                    cur_ver != "Unknown" and new_ver != "Unknown" and cur_ver < new_ver and bool(update_url)
-            )
+            new_ver = update_ver
+        elif cur_ver != "Unknown" and data_ver != "Unknown" and cur_ver < data_ver and bool(data_update_url):
+            update_active = True
             append_active = True
-            self.updater.update_url = update_url
-            self.updater.md5_url = md5_url
+            self.updater.update_url = data_update_url
+            self.updater.md5_url = data_md5_url
+            new_ver = data_ver
+        else:
+            self.updater.update_url = data_update_url
+            self.updater.md5_url = data_md5_url
+            new_ver = data_ver
 
         while True:
             try:
-                self.updater.draw_home(self.board_info, cur_ver, new_ver, os_cur_ver, actions_enabled=update_active)
+                self.updater.draw_home(self.board_info, cur_ver, new_ver, os_cur_ver,
+                                       actions_enabled=update_active, append_enabled=append_active)
 
                 if self.skip_first_input:
                     self.input.reset()
@@ -1624,7 +1632,7 @@ fi
                 elif update_active and self.input.is_key("A"):
                     self.updater.start_update(append_active)
 
-                elif update_active and self.input.is_key("Y"):
+                elif self.input.is_key("Y"):
                     self.updater.show_info(update_info)
 
                 time.sleep(0.1)
