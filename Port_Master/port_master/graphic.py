@@ -14,15 +14,15 @@ font_file = local_font_list if os.path.exists(local_font_list) else sys_font_fil
 color_text = "#ffffff"
 
 screen_resolutions = {
-    1: (720, 720, 14),
-    2: (720, 480, 7)
+    1: (720, 720, 18),
+    2: (720, 480, 11)
 }
 
 class UserInterface:
     _instance: Optional["UserInterface"] = None
     _initialized: bool = False
 
-    screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 7))
+    screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
     layout_name = os.getenv("CONTROLLER_LAYOUT", "nintendo")
     colorBlue = "#0072bb"
     colorBlueD1 = "#004f7f"
