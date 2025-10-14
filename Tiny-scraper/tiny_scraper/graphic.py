@@ -89,8 +89,12 @@ class UserInterface:
         )
 
         if not renderer:
-            print(f"Failed to create renderer: {sdl2.SDL_GetError()}")
-            raise RuntimeError("Failed to create renderer")
+            renderer = sdl2.render.SDL_CreateRenderer(
+                self.window, -1, sdl2.render.SDL_RENDERER_SOFTWARE
+            )
+            if not renderer:
+                print(f"Failed to create renderer: {sdl2.SDL_GetError()}")
+                raise RuntimeError("Failed to create renderer")
 
         sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"0")
         return renderer
