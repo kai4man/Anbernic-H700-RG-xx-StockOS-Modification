@@ -1,9 +1,8 @@
 from pathlib import Path
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
 import os
-import graphic as gr
 import config as cf
 import input
 import sys
@@ -13,6 +12,7 @@ from bezels import Bezels
 
 ver="v1.2"
 translator = Translator(system_lang)
+gr = UserInterface()
 selected_position = 0
 roms_selected_position = 0
 selected_system = ""
@@ -109,17 +109,17 @@ def load_console_menu() -> None:
         start_idx = int(selected_position / max_elem) * max_elem
         end_idx = start_idx + max_elem
         for i, system in enumerate(available_systems[start_idx:end_idx]):
-            row_list(
+            gr.row_list(
                 system, (20, 50 + (i * 35)), x_size - 40, i == (selected_position % max_elem)
             )
-        button_circle((20, button_y), "A", f"{translator.translate('Select')}")
+        gr.button_circle((20, button_y), "A", f"{translator.translate('Select')}")
     else:
         gr.draw_text(
             (x_size / 2, y_size / 2), f"{translator.translate('No config file found in SD')} {an.get_sd_storage()}", anchor="mm"
         )
 
-    button_circle((button_x - 110, button_y), "Y", f"{translator.translate('Help')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((button_x - 110, button_y), "Y", f"{translator.translate('Help')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -244,7 +244,7 @@ def load_cfg_menu() -> None:
     start_idx = int(roms_selected_position / max_elem) * max_elem
     end_idx = start_idx + max_elem
     for i, rom in enumerate(roms_list[start_idx:end_idx]):
-        row_list(
+        gr.row_list(
             rom.name[:48] + "..." if len(rom.name) > 50 else rom.name,
             (20, 50 + (i * 35)),
             x_size -40,
@@ -269,10 +269,10 @@ def load_cfg_menu() -> None:
             f"{translator.translate('The .cfg file has an issue and cannot be used!')}", fill=gr.colorBlue, outline=gr.colorBlueD1
         )
 
-    button_circle((20, button_y), "A", f"{translator.translate('Apply')}")
-    button_circle((160, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((280, button_y), "X", f"{translator.translate('Reset')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((20, button_y), "A", f"{translator.translate('Apply')}")
+    gr.button_circle((160, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((280, button_y), "X", f"{translator.translate('Reset')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -294,30 +294,7 @@ def load_help_menu() -> None:
         (x_size / 2, y_size / 2), f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", anchor="mm"
     )
 
-    button_circle((20, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((20, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
-
-
-def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
-    gr.draw_rectangle_r(
-        [pos[0], pos[1], pos[0] + width, pos[1] + 32],
-        5,
-        fill=(gr.colorBlue if selected else gr.colorGrayL1),
-    )
-    gr.draw_text((pos[0] + 5, pos[1] + 5), text)
-
-
-def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")

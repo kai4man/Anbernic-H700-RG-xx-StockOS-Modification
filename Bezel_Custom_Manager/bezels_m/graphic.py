@@ -1,289 +1,359 @@
-from fcntl import ioctl
-from PIL import Image, ImageDraw, ImageFont
-from main import hw_info
-import mmap
+import ctypes
 import os
+from main import hw_info
+from typing import Optional
 
-fb: int
-mm: mmap.mmap
-
-screen_resolutions = {
-    1: (720, 720, 18),
-    2: (720, 480, 11)
-}
-
-screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 11))
-bytes_per_pixel = 4
-screen_size = screen_width * screen_height * bytes_per_pixel
+import sdl2
+from PIL import Image, ImageDraw, ImageFont
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-font_file = os.path.join(script_dir, 'font', 'font.ttf')
-sys_font = "/mnt/vendor/bin/default.ttf"
-if not os.path.exists(font_file):
-    font_file = sys_font
-fb_file = "/mnt/mod/ctrl/configs/fb.cfg"
+local_font_list = os.path.join(script_dir, "font/font.ttf")
+sys_font_file = os.path.join("/mnt/vendor/bin/default.ttf")
+font_file = local_font_list if os.path.exists(local_font_list) else sys_font_file
 
-colorBlue = "#bb7200"
-colorBlueD1 = "#7f4f00"
-colorGray = "#292929"
-colorGrayL1 = "#383838"
-colorGrayD2 = "#141414"
-colorGreen = "#00ff00"
-colorRed = "#0202cb"
+color_text = "#ffffff"
 
-activeImage: Image.Image
-activeDraw: ImageDraw.ImageDraw
+screen_resolutions = {
+    1: (720, 720, 14),
+    2: (720, 480, 7)
+}
 
+class UserInterface:
+    _instance: Optional["UserInterface"] = None
+    _initialized: bool = False
 
-def get_fb_screeninfo():
-    global fb_screeninfo
-    if os.path.exists(fb_file):
-        with open(fb_file, 'rb') as file:
-            fb_screeninfo = file.read()
-    elif hw_info == 1:
-        fb_screeninfo = b'\xd0\x02\x00\x00\xd0\x02\x00\x00\xd0\x02\x00\x00\xa0\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00F_\x00\x008\x00\x00\x00J\x00\x00\x00\x0f\x00\x00\x00<\x00\x00\x00\n\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 2:
-        fb_screeninfo = b'\xd0\x02\x00\x00\xe0\x01\x00\x00\xd0\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00=\x96\x00\x00,\x00\x00\x006\x00\x00\x00\x0f\x00\x00\x00$\x00\x00\x00\x02\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 3:
-        fb_screeninfo = b'\xe0\x01\x00\x00\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 4:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 5:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\n\x00\x00\x00"\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 6:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00(\x00\x00\x00 \x00\x00\x00,\x00\x00\x00 \x00\x00\x00\x08\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 7:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0b\x00\x00\x00\x1b\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 8:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0b\x00\x00\x00\x1b\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    elif hw_info == 9:
-        fb_screeninfo = b'\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    else:
-        fb_fd = os.open("/dev/fb0", os.O_RDWR)
-        try:
-            fb_info = bytearray(160)
-            ioctl(fb_fd, 0x4600, fb_info)
-            fb_screeninfo = bytes(fb_info)
-        finally:
-            os.close(fb_fd)
-    #print(fb_screeninfo)
-    return fb_screeninfo
+    screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 7))
+    layout_name = os.getenv("CONTROLLER_LAYOUT", "nintendo")
+    colorBlue = "#0072bb"
+    colorBlueD1 = "#004f7f"
+    colorGray = "#292929"
+    colorGrayL1 = "#383838"
+    colorGrayD2 = "#141414"
+    colorGreen = "#00ff00"
+    colorRed = "#cb0202"
+    colorYellow = "#ffd700"
+    colorGrayL2 = "#00d7ff"
 
-def screen_reset():
-    if fb_screeninfo is not None:
-        ioctl(
-            fb,
-            0x4601,
-            bytearray(fb_screeninfo),
+    active_image: Image.Image
+    active_draw: ImageDraw.ImageDraw
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self.window = self._create_window()
+        self.renderer = self._create_renderer()
+        self.draw_start()
+        self.opt_stretch = True
+        self._initialized = True
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super(UserInterface, cls).__new__(cls)
+        return cls._instance
+
+    ###
+    # WINDOW MANAGEMENT
+    ###
+
+    def create_image(self):
+        """Create a new blank RGBA image for drawing."""
+        return Image.new("RGBA", (self.screen_width, self.screen_height), color="black")
+
+    def draw_start(self):
+        """Initialize drawing for a new frame."""
+        # Render directly to the screen
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255)
+        sdl2.SDL_RenderClear(self.renderer)
+        self.active_image = self.create_image()
+        self.active_draw = ImageDraw.Draw(self.active_image)
+
+    def _create_window(self):
+        window = sdl2.SDL_CreateWindow(
+            "RomM".encode("utf-8"),
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            0,
+            0,  # Size ignored in fullscreen mode
+            sdl2.SDL_WINDOW_FULLSCREEN_DESKTOP | sdl2.SDL_WINDOW_SHOWN,
         )
-    ioctl(fb, 0x4611, 0)
 
+        if not window:
+            print(f"Failed to create window: {sdl2.SDL_GetError()}")
+            raise RuntimeError("Failed to create window")
 
-def draw_start():
-    global fb, mm
-    fb = os.open("/dev/fb0", os.O_RDWR)
-    mm = mmap.mmap(fb, screen_size)
+        return window
 
+    def _create_renderer(self):
+        renderer = sdl2.SDL_CreateRenderer(
+            self.window, -1, sdl2.SDL_RENDERER_ACCELERATED
+        )
 
-def draw_end():
-    global fb, mm
-    mm.close()
-    os.close(fb)
+        if not renderer:
+            print(f"Failed to create renderer: {sdl2.SDL_GetError()}")
+            raise RuntimeError("Failed to create renderer")
 
+        sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"0")
+        return renderer
 
-def create_image():
-    image = Image.new("RGBA", (screen_width, screen_height), color="black")
-    return image
+    def draw_paint(self):
+        # Convert PIL image to SDL2 texture at base resolution
+        rgba_data = self.active_image.tobytes()
+        surface = sdl2.SDL_CreateRGBSurfaceWithFormatFrom(
+            rgba_data,
+            self.screen_width,
+            self.screen_height,
+            32,
+            self.screen_width * 4,
+            sdl2.SDL_PIXELFORMAT_RGBA32,
+        )
+        texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface)
+        sdl2.SDL_FreeSurface(surface)
 
+        # Get current window size
+        window_width = ctypes.c_int()
+        window_height = ctypes.c_int()
+        sdl2.SDL_GetWindowSize(
+            self.window, ctypes.byref(window_width), ctypes.byref(window_height)
+        )
+        window_width, window_height = window_width.value, window_height.value
 
-def draw_active(image):
-    global activeImage, activeDraw
-    activeImage = image
-    activeDraw = ImageDraw.Draw(activeImage)
-
-
-def draw_paint():
-    global activeImage
-    if hw_info == 3:
-        img = activeImage.rotate(90, expand=True)
-        mm.seek(0)
-        mm.write(img.tobytes())
-    else:
-        mm.seek(0)
-        mm.write(activeImage.tobytes())
-
-
-def draw_clear():
-    global activeDraw
-    activeDraw.rectangle((0, 0, screen_width, screen_height), fill="black")
-
-
-def draw_text(position, text, font=21, color="white", **kwargs):
-    global activeDraw
-    activeDraw.text(position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs)
-
-
-def draw_rectangle(position, fill=None, outline=None, width=1):
-    global activeDraw
-    activeDraw.rectangle(position, fill=fill, outline=outline, width=width)
-
-
-def draw_rectangle_r(position, radius, fill=None, outline=None):
-    global activeDraw
-    activeDraw.rounded_rectangle(position, radius, fill=fill, outline=outline)
-
-
-def draw_circle(position, radius, fill=None, outline="white"):
-    global activeDraw
-    activeDraw.ellipse(
-        [position[0], position[1], position[0] + radius, position[1] + radius],
-        fill=fill,
-        outline=outline,
-    )
-
-
-def draw_log(text, fill="Black", outline="black", width=500, font=21):
-    x = (screen_width - width) / 2
-    y = (screen_height - 80) / 2
-    rect_height = 80
-    draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
-
-    font_obj = ImageFont.truetype(font_file, font)
-    padding = 10
-    max_width = width - 2 * padding
-
-    lines = []
-    current_line = ""
-    for word in text.split():
-        test_line = f"{current_line} {word}".strip() if current_line else word
-        bbox = font_obj.getbbox(test_line)
-        test_width = bbox[2] - bbox[0]
-        
-        if test_width <= max_width:
-            current_line = test_line
+        # Let the user decide whether to stretch to fit or preserve aspect ratio
+        if not self.opt_stretch:
+            scale = min(
+                window_width / self.screen_width, window_height / self.screen_height
+            )
+            dst_width = int(self.screen_width * scale)
+            dst_height = int(self.screen_height * scale)
+            dst_x = (window_width - dst_width) // 2
+            dst_y = (window_height - dst_height) // 2
+            dst_rect = sdl2.SDL_Rect(dst_x, dst_y, dst_width, dst_height)
         else:
-            if current_line:
-                lines.append(current_line)
-                current_line = ""
+            dst_rect = sdl2.SDL_Rect(0, 0, window_width, window_height)
+
+        sdl2.SDL_RenderCopy(self.renderer, texture, None, dst_rect)
+        sdl2.SDL_RenderPresent(self.renderer)
+        sdl2.SDL_DestroyTexture(texture)
+
+    def draw_end(self):
+        sdl2.SDL_DestroyRenderer(self.renderer)
+        sdl2.SDL_DestroyWindow(self.window)
+        sdl2.SDL_Quit()
+
+    ###
+    # DRAWING FUNCTIONS
+    ###
+
+    def draw_clear(self):
+        self.active_draw.rectangle(
+            [0, 0, self.screen_width, self.screen_height], fill="black"
+        )
+
+    def draw_text(
+        self,
+        position: tuple[float, float],
+        text: str,
+        font: int = 21,
+        color: str = color_text,
+        **kwargs,
+    ):
+        self.active_draw.text(
+            position, text, font=ImageFont.truetype(font_file, font), fill=color, **kwargs
+        )
+
+    def draw_rectangle(
+        self,
+        position,
+        fill: str | None = None,
+        outline: str | None = None,
+        width: int = 1,
+    ):
+        self.active_draw.rectangle(position, fill=fill, outline=outline, width=width)
+
+    def draw_rectangle_r(
+        self,
+        position,
+        radius: float,
+        fill: str | None = None,
+        outline: str | None = None,
+    ):
+        self.active_draw.rounded_rectangle(position, radius, fill=fill, outline=outline)
+
+    def row_list(self, text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
+        self.draw_rectangle_r(
+            [pos[0], pos[1], pos[0] + width, pos[1] + 32],
+            5,
+            fill=(self.colorBlue if selected else self.colorGrayL1),
+        )
+        self.draw_text((pos[0] + 5, pos[1] + 5), text)
+
+    def draw_circle(
+        self,
+        position,
+        radius: int,
+        fill: str | None = None,
+        outline: str | None = color_text,
+    ):
+        self.active_draw.ellipse(
+            [
+                position[0],
+                position[1],
+                position[0] + radius,
+                position[1] + radius,
+            ],
+            fill=fill,
+            outline=outline,
+        )
+
+    def draw_log(self, text, fill="Black", outline="black", width=500, font=21):
+        x = (self.screen_width - width) / 2
+        y = (self.screen_height - 80) / 2
+        rect_height = 80
+        self.draw_rectangle_r([x, y, x + width, y + 80], 5, fill=fill, outline=outline)
+    
+        font_obj = ImageFont.truetype(font_file, font)
+        padding = 10
+        max_width = width - 2 * padding
+    
+        lines = []
+        current_line = ""
+        for word in text.split():
+            test_line = f"{current_line} {word}".strip() if current_line else word
+            bbox = font_obj.getbbox(test_line)
+            test_width = bbox[2] - bbox[0]
             
-            bbox = font_obj.getbbox(word)
-            word_width = bbox[2] - bbox[0]
-            if word_width <= max_width:
-                current_line = word
+            if test_width <= max_width:
+                current_line = test_line
             else:
-                remaining = word
-                while remaining:
-                    substring = ""
-                    for char in remaining:
-                        temp_sub = substring + char
-                        bbox = font_obj.getbbox(temp_sub)
-                        temp_width = bbox[2] - bbox[0]
-                        if temp_width <= max_width:
-                            substring = temp_sub
+                if current_line:
+                    lines.append(current_line)
+                    current_line = ""
+                
+                bbox = font_obj.getbbox(word)
+                word_width = bbox[2] - bbox[0]
+                if word_width <= max_width:
+                    current_line = word
+                else:
+                    remaining = word
+                    while remaining:
+                        substring = ""
+                        for char in remaining:
+                            temp_sub = substring + char
+                            bbox = font_obj.getbbox(temp_sub)
+                            temp_width = bbox[2] - bbox[0]
+                            if temp_width <= max_width:
+                                substring = temp_sub
+                            else:
+                                break
+                        if substring:
+                            lines.append(substring)
+                            remaining = remaining[len(substring):]
                         else:
                             break
-                    if substring:
-                        lines.append(substring)
-                        remaining = remaining[len(substring):]
-                    else:
-                        break
-    if current_line:
-        lines.append(current_line)
-
-    ascent, descent = font_obj.getmetrics()
-    line_height = int((ascent + descent) * 1.2)
-    total_height = len(lines) * line_height
-    start_y = y + (rect_height - total_height) // 2
-
-    for i, line in enumerate(lines):
-        text_x = x + width / 2
-        text_y = start_y + i * line_height + ascent - 5
-        draw_text((text_x, text_y), line, font, anchor="mm")
-
-
-def draw_help(text, fill="Black", outline="black", font=21):
-    x = 20
-    y = (screen_height - 180)
-    rect_width = screen_width - 40
-    rect_height = 130
-    draw_rectangle_r([x, y, screen_width - 20, y + rect_height], 5, fill=fill, outline=outline)
-
-    font_obj = ImageFont.truetype(font_file, font)
-    padding = 10
-    max_width = rect_width - 2 * padding
-
-    lines = []
-    current_line = ""
-    for word in text.split():
-        test_line = f"{current_line} {word}".strip() if current_line else word
-        bbox = font_obj.getbbox(test_line)
-        test_width = bbox[2] - bbox[0]
-        
-        if test_width <= max_width:
-            current_line = test_line
-        else:
-            if current_line:
-                lines.append(current_line)
-                current_line = ""
+        if current_line:
+            lines.append(current_line)
+    
+        ascent, descent = font_obj.getmetrics()
+        line_height = int((ascent + descent) * 1.2)
+        total_height = len(lines) * line_height
+        start_y = y + (rect_height - total_height) // 2
+    
+        for i, line in enumerate(lines):
+            text_x = x + width / 2
+            text_y = start_y + i * line_height + ascent - 5
+            self.draw_text((text_x, text_y), line, font, anchor="mm")
+    
+    
+    def draw_help(self, text, fill="Black", outline="black", font=21):
+        x = 20
+        y = (self.screen_height - 180)
+        rect_width = self.screen_width - 40
+        rect_height = 130
+        self.draw_rectangle_r([x, y, self.screen_width - 20, y + rect_height], 5, fill=fill, outline=outline)
+    
+        font_obj = ImageFont.truetype(font_file, font)
+        padding = 10
+        max_width = rect_width - 2 * padding
+    
+        lines = []
+        current_line = ""
+        for word in text.split():
+            test_line = f"{current_line} {word}".strip() if current_line else word
+            bbox = font_obj.getbbox(test_line)
+            test_width = bbox[2] - bbox[0]
             
-            bbox = font_obj.getbbox(word)
-            word_width = bbox[2] - bbox[0]
-            if word_width <= max_width:
-                current_line = word
+            if test_width <= max_width:
+                current_line = test_line
             else:
-                remaining = word
-                while remaining:
-                    substring = ""
-                    for char in remaining:
-                        temp_sub = substring + char
-                        bbox = font_obj.getbbox(temp_sub)
-                        temp_width = bbox[2] - bbox[0]
-                        if temp_width <= max_width:
-                            substring = temp_sub
+                if current_line:
+                    lines.append(current_line)
+                    current_line = ""
+                
+                bbox = font_obj.getbbox(word)
+                word_width = bbox[2] - bbox[0]
+                if word_width <= max_width:
+                    current_line = word
+                else:
+                    remaining = word
+                    while remaining:
+                        substring = ""
+                        for char in remaining:
+                            temp_sub = substring + char
+                            bbox = font_obj.getbbox(temp_sub)
+                            temp_width = bbox[2] - bbox[0]
+                            if temp_width <= max_width:
+                                substring = temp_sub
+                            else:
+                                break
+                        if substring:
+                            lines.append(substring)
+                            remaining = remaining[len(substring):]
                         else:
                             break
-                    if substring:
-                        lines.append(substring)
-                        remaining = remaining[len(substring):]
-                    else:
-                        break
-    if current_line:
-        lines.append(current_line)
+        if current_line:
+            lines.append(current_line)
+    
+        ascent, descent = font_obj.getmetrics()
+        line_height = int((ascent + descent) * 1)
+        total_height = len(lines) * line_height
+        start_y = y + (rect_height - total_height) // 2
 
-    ascent, descent = font_obj.getmetrics()
-    line_height = int((ascent + descent) * 1)
-    total_height = len(lines) * line_height
-    start_y = y + (rect_height - total_height) // 2
-
-    for i, line in enumerate(lines):
-        text_x = screen_width // 2
-        text_y = start_y + i * line_height +10
-        draw_text((text_x, text_y), line, font, anchor="mm")
+        for i, line in enumerate(lines):
+            text_x = self.screen_width // 2
+            text_y = start_y + i * line_height +10
+            self.draw_text((text_x, text_y), line, font, anchor="mm")
 
 
-def display_image(image_path, target_x=0, target_y=0, target_width=None, target_height=None, rota=1):
-    global activeImage
-    if target_width is None:
-        target_width = screen_width - target_x
-    if target_height is None:
-        target_height = screen_height - target_y
-    img = Image.open(image_path)
-    img.thumbnail((target_width, target_height))
-    img = img.convert('RGBA')
-    r, g, b, a = img.split()
-    img = Image.merge('RGBA', (b, g, r, a))
-    paste_x = target_x + (target_width - img.width) // 2
-    paste_y = target_y + (target_height - img.height) // 2
-    if hw_info == 3 and rota == 1:
-        img = img.rotate(-90, expand=True)
-    activeImage.paste(img, (paste_x, paste_y))
-    draw_paint()
+    def get_text_width(self, text, font):
+        image = Image.new('RGB', (1, 1))
+        draw = ImageDraw.Draw(image)
+        font_obj = ImageFont.truetype(font_file, font)
+        bbox = draw.textbbox((0, 0), text, font=font_obj)
+        width = bbox[2] - bbox[0]
+        return width
 
+    def button_circle(self, pos: tuple[int, int], button: str, text: str) -> None:
+        self.draw_circle(pos, 25, fill=self.colorBlueD1)
+        self.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
+        self.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
+    
+    
+    def button_rectangle(self, pos: tuple[int, int], button: str, text: str) -> None:
+        self.draw_rectangle_r(
+            (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=self.colorGrayL1
+        )
+        self.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
+        self.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
 
-fb_screeninfo = get_fb_screeninfo()
-
-draw_start()
-screen_reset()
-
-imgMain = create_image()
-draw_active(imgMain)
+    def display_image(self, image_path, target_x=0, target_y=0, target_width=None, target_height=None, rota=1):
+        if target_width is None:
+            target_width = self.screen_width - target_x
+        if target_height is None:
+            target_height = self.screen_height - target_y
+        img = Image.open(image_path)
+        img.thumbnail((target_width, target_height))
+        paste_x = target_x + (target_width - img.width) // 2
+        paste_y = target_y + (target_height - img.height) // 2
+        if hw_info == 3 and rota == 1:
+            img = img.rotate(-90, expand=True)
+        self.active_image.paste(img, (paste_x, paste_y))
+        self.draw_paint()

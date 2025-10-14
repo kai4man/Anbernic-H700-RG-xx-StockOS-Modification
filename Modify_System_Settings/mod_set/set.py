@@ -129,6 +129,14 @@ def handle_timezone(value):
     run_command(f"timedatectl set-timezone {value}")
 
 
+def handle_mode(value):
+    """处理 RetroArch 运行模式"""
+    if value in ("0", "1"):
+        set_setting("ra.mode", value)
+    else:
+        print(f"Invalid mode value: {value}")
+
+
 def handle_ra_hot(value):
     """处理 RetroArch 热键"""
     if value in ("0", "1"):
@@ -330,8 +338,6 @@ def handle_power(key, value):
         print(f"Invalid power {key} value: {value}")
 
 
-
-
 class Set:
     def __init__(self):
         self.user = ""
@@ -373,6 +379,7 @@ class Set:
         # 命令到处理函数的映射
         command_handlers = {
             "lang": handle_lang,
+            "mode": handle_mode,
             "timezone": handle_timezone,
             "ra_hot": handle_ra_hot,
             "rtgg": handle_rtgg,

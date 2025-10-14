@@ -2,6 +2,8 @@
 
 progdir=$(cd $(dirname "$0"); pwd)
 
+export PYSDL2_DLL_PATH="/usr/lib"
+
 program="python3 ${progdir}/port_master/main.py"
 log_file="${progdir}/port_master/log.txt"
 

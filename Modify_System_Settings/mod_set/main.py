@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import app
 from pathlib import Path
+import zipfile
+import os
 
 board_mapping = {
     'RGcubexx': 1,
@@ -14,7 +15,6 @@ board_mapping = {
     'RG40xxH': 7,
     'RG40xxV': 8,
     'RG35xxPRO': 9
-
 }
 system_list = ['zh_CN', 'zh_TW', 'en_US', 'ja_JP', 'ko_KR', 'es_LA', 'ru_RU', 'de_DE', 'fr_FR', 'pt_BR']
 
@@ -31,8 +31,26 @@ except (FileNotFoundError, IndexError):
 hw_info = board_mapping.get(board_info, 5)
 system_lang = system_list[int(lang_info)]
 
+def ensure_sdl2():
+    try:
+        import sdl2
+        return True
+    except ImportError:
+        try:
+            program = os.path.dirname(os.path.abspath(__file__))
+            module_file = os.path.join(program, "sdl2.zip")
+            with zipfile.ZipFile(module_file, 'r') as zip_ref:
+                zip_ref.extractall("/")
+            print("Successfully installed sdl2")
+            return True
+        except Exception as e:
+            print(f"Failed to install sdl2: {e}")
+            return False
 
 def main():
+
+    if ensure_sdl2():
+        import app
 
     app.start()
 

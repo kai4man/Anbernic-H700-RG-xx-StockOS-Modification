@@ -41,6 +41,22 @@
       ]
     },
     {
+      "menu": "menu.1-mode",
+      "menu_help": "menu.mode.help",
+      "options": [
+        "menu.mode.0",
+        "menu.mode.1"
+      ],
+      "opt_help": [
+        "menu.mode.opt.0",
+        "menu.mode.opt.1"
+      ],
+      "operations": [
+        "mode:0",
+        "mode:1"
+      ]
+    },
+    {
       "menu": "menu.ra_hot",
       "menu_help": "menu.ra_hot.help",
       "options": [

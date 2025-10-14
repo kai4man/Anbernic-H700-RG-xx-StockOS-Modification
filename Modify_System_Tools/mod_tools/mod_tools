@@ -85,13 +85,7 @@ case $1 in
     ;;
     
     apps) # Reinstall apps
-        mkdir -p /mnt/mmc/update
-        cat <<'EOF' >/mnt/mmc/update/update.sh
-#!/bin/bash
-SHDIR="$(cd $(dirname "$0"); pwd)"
-rm -rf "$SHDIR"
-/mnt/mod/update/update.sh
-EOF
+        touch /mnt/mod/update_me
     ;;
 esac
 

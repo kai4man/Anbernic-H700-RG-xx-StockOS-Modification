@@ -1,8 +1,8 @@
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
 from anbernic import Anbernic
-import graphic as gr
+from pathlib import Path
 import os
 import input
 import sys
@@ -10,7 +10,6 @@ import time
 import math
 from set import Set
 
-ver="v1.2"
 translator = Translator(system_lang)
 selected_position = 0
 menu_selected_position = 0
@@ -21,6 +20,12 @@ help_txt = ""
 skip_input_check = False
 an = Anbernic()
 set = Set()
+gr = UserInterface()
+
+try:
+    ver = Path("/mnt/mod/ctrl/configs/ver.cfg").read_text().splitlines()[0]
+except (FileNotFoundError, IndexError):
+    ver = 'Unknown'
 
 x_size, y_size, max_elem = screen_resolutions.get(hw_info, (640, 480, 7))
 
@@ -96,12 +101,12 @@ def load_menu_menu() -> None:
     gr.draw_clear()
 
     gr.draw_rectangle_r([10, 40, x_size - 10, y_size - 40], 15, fill=gr.colorGrayD2, outline=None)
-    gr.draw_text((x_size / 2, 20), f"{translator.translate('Modify System Tools')} {ver} - {math.ceil((menu_selected_position + 1) / max_elem)} / {math.ceil(len(all_menu) / max_elem)}", font=23, anchor="mm")
+    gr.draw_text((x_size / 2, 20), f"{translator.translate('Modify System Tools')} v{ver} - {math.ceil((menu_selected_position + 1) / max_elem)} / {math.ceil(len(all_menu) / max_elem)}", font=23, anchor="mm")
 
     start_idx = int(menu_selected_position / max_elem) * max_elem
     end_idx = start_idx + max_elem
     for i, system in enumerate(all_menu[start_idx:end_idx]):
-        row_list(
+        gr.row_list(
             translator.translate(system), (20, 50 + (i * 35)), x_size - 40, i == (menu_selected_position % max_elem)
         )
 
@@ -110,8 +115,8 @@ def load_menu_menu() -> None:
         f"{translator.translate(help_txt)}", fill=gr.colorBlueD1, outline=gr.colorBlueD1
     )
 
-    button_circle((30, button_y), "A", f"{translator.translate('Select')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((30, button_y), "A", f"{translator.translate('Select')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -148,6 +153,13 @@ def load_options_menu() -> None:
         storage_path = an.get_sd_storage_path()
         success, output, file = set.execute_command(command, storage_path)
         if success:
+            if command.startswith("tools:st"):
+                gr.draw_clear()
+                gr.draw_paint()
+                os.system('sync')
+                gr.draw_end()
+                print("Exiting Modify System Tools...")
+                sys.exit()
             status_msg = f"{translator.translate('Done')}. {translator.translate(output)}\n{file}"
             status_color = gr.colorBlue
         else:
@@ -163,7 +175,6 @@ def load_options_menu() -> None:
             os.system('sync')
             os.system('reboot')
             time.sleep(3)
-
 
     elif input.key("DY"):
         opt_selected_position = (opt_selected_position + input.value) % len(opt_list)
@@ -190,7 +201,7 @@ def load_options_menu() -> None:
     start_idx = int(opt_selected_position / max_elem) * max_elem
     end_idx = start_idx + max_elem
     for i, para in enumerate(opt_list[start_idx:end_idx]):
-        row_list(
+        gr.row_list(
             f"{translator.translate(para)}",
             (20, 50 + (i * 35)),
             x_size -40,
@@ -203,32 +214,10 @@ def load_options_menu() -> None:
         fill=None, outline=gr.colorBlueD1
     )
 
-    button_circle((30, button_y), "A", f"{translator.translate('Select')}")
-    button_circle((150, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((30, button_y), "A", f"{translator.translate('Select')}")
+    gr.button_circle((150, button_y), "B", f"{translator.translate('Back')}")
     if menu_selected_position < 2:
-        button_circle((270, button_y), "Y", f"{translator.translate('Save in')} TF: {an.get_sd_storage()}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+        gr.button_circle((270, button_y), "Y", f"{translator.translate('Save in')} TF: {an.get_sd_storage()}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
-
-def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
-    gr.draw_rectangle_r(
-        [pos[0], pos[1], pos[0] + width, pos[1] + 32],
-        5,
-        fill=(gr.colorBlue if selected else gr.colorGrayL1),
-    )
-    gr.draw_text((pos[0] + 5, pos[1] + 5), text)
-
-
-def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")

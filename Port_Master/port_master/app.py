@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
-import graphic as gr
 import input
 import sys
 import time
@@ -34,6 +33,7 @@ HARBOUR_FILE = os.path.join(PYLIBS_DIR, "harbour.py")
 PUGSCENE_FILE = os.path.join(LEGACY_PORTMASTER_DIR, "pylibs/pugscene.py")
 
 translator = Translator(system_lang)
+gr = UserInterface()
 selected_position = 0
 roms_selected_position = 0
 selected_system = ""
@@ -527,8 +527,8 @@ def load_screen_show_update_prompt() -> bool:
     gr.draw_text((x_size / 2, y_size / 2 - 60), translator.translate('New version of PortMaster is available'), font=23, anchor="mm")
     gr.draw_text((x_size / 2, y_size / 2 - 30), f"{current_version} → {port_master_github_version}", font=19, anchor="mm")
     gr.draw_text((x_size / 2, y_size / 2), translator.translate('Do you want to update?'), font=19, anchor="mm")
-    button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
-    button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
+    gr.button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
+    gr.button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
     
     gr.draw_paint()
     
@@ -731,8 +731,8 @@ def load_creen_runtimes() -> None:
 
     gr.draw_clear()
     gr.draw_text((x_size / 2, y_size / 2 - 30), translator.translate('Do you want to download runtimes for PortMaster?'), font=23, anchor="mm")
-    button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
-    button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
+    gr.button_rectangle((x_size / 2 - 140, y_size / 2 + 60), "A", f"{translator.translate('Yes')}")
+    gr.button_rectangle((x_size / 2 + 70, y_size / 2 + 60), "B", f"{translator.translate('No')}")
     
     gr.draw_paint()
     
@@ -1256,15 +1256,3 @@ def update() -> None:
     if input.key("MENUF"):
         gr.draw_end()
         sys.exit()
-
-def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")

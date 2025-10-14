@@ -1,10 +1,9 @@
 from pathlib import Path
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
 import subprocess
 import os
-import graphic as gr
 import config as cf
 import input
 import sys
@@ -14,6 +13,7 @@ from themes import Themes
 
 ver="v1.2"
 translator = Translator(system_lang)
+gr = UserInterface()
 selected_position = 0
 theme_selected_position = 0
 logo_selected_position = 0
@@ -191,15 +191,15 @@ def load_console_menu() -> None:
             menu_list(
                 f"{translator.translate(system)}", (20, 50 + (i * 35)), x_size - 40, i == (selected_position % max_elem)
             )
-        button_circle((20, button_y), "A", f"{translator.translate('Select')}")
+        gr.button_circle((20, button_y), "A", f"{translator.translate('Select')}")
     else:
         gr.draw_text(
             (x_size / 2, y_size / 2), f"{translator.translate('No file found.')}", anchor="mm"
         )
 
-    button_circle((button_x - 300, button_y), "X", f"{translator.translate('Help')}")
-    button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((button_x - 300, button_y), "X", f"{translator.translate('Help')}")
+    gr.button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -312,10 +312,10 @@ def load_theme_menu() -> None:
     if os.path.exists(img_file):
         gr.display_image(img_file, target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio), rota=0)
 
-    button_circle((20, button_y), "A", f"{translator.translate('Install')}")
-    button_circle((120, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((20, button_y), "A", f"{translator.translate('Install')}")
+    gr.button_circle((120, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((button_x - 170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -411,10 +411,10 @@ def load_logo_menu() -> None:
     if os.path.exists(img_file):
         gr.display_image(img_file, target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio))
 
-    button_circle((20, button_y), "A", f"{translator.translate('Set')}")
-    button_circle((140, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((260, button_y), "X", f"{translator.translate('Ran. disp')}: {translator.translate(cf.get_config('boot.logo'))}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((20, button_y), "A", f"{translator.translate('Set')}")
+    gr.button_circle((140, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((260, button_y), "X", f"{translator.translate('Ran. disp')}: {translator.translate(cf.get_config('boot.logo'))}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -436,8 +436,8 @@ def load_help_menu() -> None:
         f"{translator.translate('message_02-1')}\n{translator.translate('message_02-2')}\n{translator.translate('message_02-3')}", font=19
     )
 
-    button_circle((20, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((20, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -448,17 +448,3 @@ def menu_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> No
         fill=(gr.colorBlue if selected else gr.colorGrayL1),
     )
     gr.draw_text((pos[0] + 5, pos[1] + 5), text)
-
-
-def button_circle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_circle(pos, 25, fill=gr.colorBlueD1)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")

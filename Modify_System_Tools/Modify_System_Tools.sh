@@ -2,6 +2,8 @@
 
 progdir="$(cd $(dirname "$0") || exit; pwd)"/mod_tools
 
+export PYSDL2_DLL_PATH="/usr/lib"
+
 random="$progdir/random.cfg"
 [ -f "$random" ] && rm -f "$random"
 

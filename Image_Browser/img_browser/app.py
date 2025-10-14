@@ -1,8 +1,7 @@
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
 import os
-import graphic as gr
 import input
 import sys
 import threading
@@ -19,6 +18,7 @@ file_list = []
 menu_deep = [0] * 20
 current_deep = 0
 selected_index = menu_deep[current_deep]
+gr = UserInterface()
 
 slideshow_active = False
 slideshow_index = 0
@@ -79,6 +79,8 @@ def handle_browser_input() -> None:
     if file_list:
         if input.key("DY"):
             selected_index = (selected_index + input.value) % len(file_list)
+        elif input.key("DX"):
+            selected_index = (selected_index + input.value * 5) % len(file_list)
         elif input.key("L1"):
             if selected_index > 0:
                 selected_index = max(0, selected_index - max_elem)
@@ -148,7 +150,7 @@ def handle_browser_input() -> None:
         end_idx = start_idx + max_elem
     
         for i, entry in enumerate(file_list[start_idx:end_idx]):
-            row_list(
+            gr.row_list(
                 entry[0][:48] + "..." if len(entry[0]) > 50 else entry[0],
                 (20, 50 + (i * 35)),
                 x_size -40,
@@ -158,16 +160,16 @@ def handle_browser_input() -> None:
         cur_file = file_list[selected_index][2]
         if cur_file == 'image':
             gr.preview_image(file_list[selected_index][1], target_x = int(x_size / 2 + 10), target_y = int(y_size / 4), target_width = int(x_size / 2 - 30), target_height = int((x_size / 2 - 30) * ratio))
-            button_circle((210, button_y), "X", f"{translator.translate('Slideshow')}")
-        button_circle((20, button_y), "A", f"{translator.translate('Open')}")
+            gr.button_circle((210, button_y), "X", f"{translator.translate('Slideshow')}")
+        gr.button_circle((20, button_y), "A", f"{translator.translate('Open')}")
     else:
         gr.draw_text(
             (x_size / 2, y_size / 2), f"{translator.translate('No valid file found!')}", anchor="mm"
         )
 
-    button_circle((120, button_y), "B", f"{translator.translate('Back')}")
-    button_circle((button_x-170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((120, button_y), "B", f"{translator.translate('Back')}")
+    gr.button_circle((button_x-170, button_y), "Y", f"{translator.translate('Switch')} TF: {an.get_sd_storage()}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -177,6 +179,9 @@ def handle_image_viewer_input():
     
     if input.key("DY"):
         selected_index = (selected_index + input.value) % len(file_list)
+        enter_fullscreen(file_list[selected_index][1])
+    elif input.key("DX"):
+        selected_index = (selected_index + input.value * 5) % len(file_list)
         enter_fullscreen(file_list[selected_index][1])
     elif input.key("L1"):
         if selected_index > 0:
@@ -211,28 +216,6 @@ def handle_slideshow_input():
             skip_input_check = True
             return
 
-    
-def button_circle(pos: tuple[int, int], button: str, text: str, color=gr.colorBlueD1) -> None:
-    gr.draw_circle(pos, 25, fill=color)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
-
-def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
-    gr.draw_rectangle_r(
-        [pos[0], pos[1], pos[0] + width, pos[1] + 32],
-        5,
-        fill=(gr.colorBlue if selected else gr.colorGrayL1),
-    )
-    gr.draw_text((pos[0] + 5, pos[1] + 5), text)
-
 def enter_fullscreen(image_path, is_slideshow=False):
     global current_window
     if not is_slideshow:
@@ -248,7 +231,7 @@ def exit_fullscreen():
 
 def update_file_list():
     global current_path, file_list
-    button_circle((20, 6), " ", " ", color=gr.colorRed)
+    gr.button_circle((20, 6), " ", " ", color=gr.colorRed)
     gr.draw_paint()
     file_list = an.get_current_path_files(current_path)
 

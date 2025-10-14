@@ -35,6 +35,7 @@ system_lang = system_list[int(lang_info)]
 def ensure_requests():
     try:
         import requests
+        import sdl2
         return True
     except ImportError:
         try:
@@ -51,7 +52,6 @@ def ensure_requests():
 def main():
     
     if ensure_requests():
-        import requests
         import app
 
     app.start()

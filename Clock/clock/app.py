@@ -1,7 +1,6 @@
 from main import hw_info, system_lang
-from graphic import screen_resolutions
+from graphic import screen_resolutions, UserInterface
 from language import Translator
-import graphic as gr
 import input
 import sys
 from weather import weather
@@ -13,6 +12,7 @@ import os
 
 ver = "v1.2"
 translator = Translator(system_lang)
+gr = UserInterface()
 skip_input_check = False
 current_window = "console"
 selected_index = 0
@@ -90,15 +90,15 @@ def handle_console_input() -> None:
     end_idx = start_idx + max_elem
 
     for i, entry in enumerate(file_list[start_idx:end_idx]):
-        row_list(
+        gr.row_list(
             f"{translator.translate(entry)}",
             (20, 50 + (i * 35)),
             x_size - 40,
             i == (selected_index % max_elem),
         )
 
-    button_circle((30, button_y), "A", f"{translator.translate('Open')}")
-    button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
+    gr.button_circle((30, button_y), "A", f"{translator.translate('Open')}")
+    gr.button_circle((button_x, button_y), "M", f"{translator.translate('Exit')}")
 
     gr.draw_paint()
 
@@ -377,26 +377,3 @@ def handle_stopwatch_input() -> None:
         gr.draw_text((x_pos, y_pos + 150), f"{translator.translate('Press M/F to Exit')}", font=21, anchor="mm")
 
         gr.draw_paint()
-
-
-def button_circle(pos: tuple[int, int], button: str, text: str, color=gr.colorBlueD1) -> None:
-    gr.draw_circle(pos, 25, fill=color)
-    gr.draw_text((pos[0] + 12, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 30, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def button_rectangle(pos: tuple[int, int], button: str, text: str) -> None:
-    gr.draw_rectangle_r(
-        (pos[0], pos[1], pos[0] + 60, pos[1] + 25), 5, fill=gr.colorGrayL1
-    )
-    gr.draw_text((pos[0] + 30, pos[1] + 12), button, anchor="mm")
-    gr.draw_text((pos[0] + 65, pos[1] + 12), text, font=19, anchor="lm")
-
-
-def row_list(text: str, pos: tuple[int, int], width: int, selected: bool) -> None:
-    gr.draw_rectangle_r(
-        [pos[0], pos[1], pos[0] + width, pos[1] + 32],
-        5,
-        fill=(gr.colorBlue if selected else gr.colorGrayL1),
-    )
-    gr.draw_text((pos[0] + 5, pos[1] + 5), text)
