@@ -129,11 +129,13 @@ def load_menu_menu() -> None:
 
     all_menu = set.get_all_menus()
     for remove_list in remove_lists:
-        all_menu.remove(remove_list)
+        if all_menu.count(remove_list)>0:
+            all_menu.remove(remove_list)
 
     if get_setting("ra.mode") == "1":
         for mode_list in mode_lists:
-            all_menu.remove(mode_list)
+            if all_menu.count(mode_list)>0:
+                all_menu.remove(mode_list)
     if system_lang != "zh_CN":
         all_menu.sort()
     if not all_menu:
