@@ -101,13 +101,20 @@ class UserInterface:
 
     def draw_paint(self):
         # Convert PIL image to SDL2 texture at base resolution
-        rgba_data = self.active_image.tobytes()
+        if hw_info == 3:
+            rotated_image = self.active_image.rotate(90, expand=True)
+            rgba_data = rotated_image.tobytes()
+            temp_width, temp_height = rotated_image.size
+        else:
+            rgba_data = self.active_image.tobytes()
+            temp_width, temp_height = self.screen_width, self.screen_height
+
         surface = sdl2.SDL_CreateRGBSurfaceWithFormatFrom(
             rgba_data,
-            self.screen_width,
-            self.screen_height,
+            temp_width,
+            temp_height,
             32,
-            self.screen_width * 4,
+            temp_width * 4,
             sdl2.SDL_PIXELFORMAT_RGBA32,
         )
         texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface)
@@ -124,10 +131,10 @@ class UserInterface:
         # Let the user decide whether to stretch to fit or preserve aspect ratio
         if not self.opt_stretch:
             scale = min(
-                window_width / self.screen_width, window_height / self.screen_height
+                window_width / temp_width, window_height / temp_height
             )
-            dst_width = int(self.screen_width * scale)
-            dst_height = int(self.screen_height * scale)
+            dst_width = int(temp_width * scale)
+            dst_height = int(temp_height * scale)
             dst_x = (window_width - dst_width) // 2
             dst_y = (window_height - dst_height) // 2
             dst_rect = sdl2.SDL_Rect(dst_x, dst_y, dst_width, dst_height)
