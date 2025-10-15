@@ -23,7 +23,6 @@ class UserInterface:
     _initialized: bool = False
 
     screen_width, screen_height, max_elem = screen_resolutions.get(hw_info, (640, 480, 7))
-    layout_name = os.getenv("CONTROLLER_LAYOUT", "nintendo")
     colorBlue = "#0072bb"
     colorBlueD1 = "#004f7f"
     colorGray = "#292929"
