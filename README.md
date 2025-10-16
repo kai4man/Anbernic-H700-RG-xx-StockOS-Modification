@@ -28,7 +28,7 @@ Stock OS Modification is a project built on the StockOS of Anbernic, which is en
 2. When using balenaEtcher flash TF under MacOS system, automatic partitioning will fail.
    - Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/issues/68
   
-   You can use the script I provided to complete the flashing process:
+   You can use the script I provided to complete the flashing process. Please place the image file and script file in the same path, run the script, and follow the prompts to complete the subsequent operations. Please ensure that gdisk is installed before use:
    - Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/blob/main/flash_dd_with_gpt.sh
 
 ## For more information, please visit
