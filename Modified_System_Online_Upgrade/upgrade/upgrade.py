@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Stock OS Mod Updater - Professional Edition
 """
@@ -8,10 +7,10 @@ from __future__ import annotations
 # =========================
 # Standard Library Imports
 # =========================
+import ctypes
 import hashlib
 import json
 import logging
-import mmap
 import os
 import shutil
 import socket
@@ -20,22 +19,21 @@ import sys
 import time
 import zipfile
 from dataclasses import dataclass
-from fcntl import ioctl
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from urllib.error import ContentTooShortError, URLError
-from urllib.request import urlretrieve
 
 # =========================
 # Third-Party Imports
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.0.6"
-base_ver = "3.7.0"
+cur_app_ver = "1.1.0"
+base_ver = "3.8.0"
 
 def ensure_requests():
     try:
+        import sdl2
         import requests
         import urllib3
         from urllib3.util import Retry
@@ -59,25 +57,25 @@ if ensure_requests():
     import urllib3
     from urllib3.util import Retry
     from requests.adapters import HTTPAdapter
+    import sdl2
 
 # =========================
 # Logging Setup
 # =========================
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(APP_PATH, "update.log")
-if os.path.exists(LOG_FILE):
-    try:
-        os.remove(LOG_FILE)
-    except Exception:
-        pass
+log_delete = 0
+if log_delete and os.path.exists(LOG_FILE):
+    os.remove(LOG_FILE)
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[logging.FileHandler(LOG_FILE), logging.StreamHandler(sys.stdout)],
 )
 LOGGER = logging.getLogger("upgrade")
-LOGGER.info(f"Start Log")
+LOGGER.info(f">>>")
+LOGGER.info(f"=== Start Log ===")
 
 
 # =========================
@@ -100,23 +98,24 @@ class Config:
         "pt_BR",
     )
 
-    COLOR_PRIMARY: str = "#eb6325"  # Primary hue - Professional blue
-    COLOR_PRIMARY_LIGHT: str = "#f6823b"  # light blue
-    COLOR_PRIMARY_DARK: str = "#d84e1d"  # dark blue
-    COLOR_SECONDARY: str = "#0b9ef5"  # Secondary color - amber
-    COLOR_ACCENT: str = "#81b910"  # accent color - green
-    COLOR_DANGER: str = "#4444ef"  # DANGER/ERROR COLOR - RED
+    color_text = "#ffffff"
+    COLOR_PRIMARY: str = "#3563eb"  # Primary hue - Professional blue
+    COLOR_PRIMARY_LIGHT: str = "#3b82f6"  # light blue
+    COLOR_PRIMARY_DARK: str = "#1d4ed8"  # dark blue
+    COLOR_SECONDARY: str = "#f59e0b"  # Secondary color - amber
+    COLOR_ACCENT: str = "#10b981"  # accent color - green
+    COLOR_DANGER: str = "#ef4444"  # DANGER/ERROR COLOR - RED
 
-    COLOR_BG: str = "#271811"  # Background color - dark blue grey
-    COLOR_BG_LIGHT: str = "#37291f"  # Light background color
-    COLOR_CARD: str = "#35241a"  # CARD BACKGROUND
-    COLOR_CARD_LIGHT: str = "#473224"  # Bright card background
+    COLOR_BG: str = "#111827"  # Background color - dark blue grey
+    COLOR_BG_LIGHT: str = "#1f2937"  # Light background color
+    COLOR_CARD: str = "#1a2435"  # CARD BACKGROUND
+    COLOR_CARD_LIGHT: str = "#243247"  # Bright card background
 
-    COLOR_TEXT: str = "#f6f4f3"  # Main text color
-    COLOR_TEXT_SECONDARY: str = "#afa39c"  # Secondary text color
-    COLOR_BORDER: str = "#514137"  # Border color
+    COLOR_TEXT: str = "#f3f4f6"  # Main text color
+    COLOR_TEXT_SECONDARY: str = "#9ca3af"  # Secondary text color
+    COLOR_BORDER: str = "#374151"  # Border color
 
-    COLOR_SHADOW: str = "#120a07"  # Shadow color
+    COLOR_SHADOW: str = "#070a12"  # Shadow color
     COLOR_OVERLAY: str = "#00000080"  # Overlay color
 
     font_file: str = os.path.join(APP_PATH, "font", "font.ttf")
@@ -125,10 +124,8 @@ class Config:
 
     ver_cfg_path: str = "/mnt/mod/ctrl/configs/ver.cfg"
     os_ver_cfg_path: str = "/mnt/vendor/oem/version.ini"
-    fb_cfg_path: str = "/mnt/mod/ctrl/configs/fb.cfg"
 
     tmp_app_update: str = "/tmp/app.tar.gz"
-    tmp_app_md5: str = "/tmp/app.tar.gz.md5"
 
     tmp_list = [
         "/dev/shm",
@@ -147,9 +144,8 @@ class Config:
     tmp_path: str = free_space[0][1] if free_space[0][1] else "/tmp"
     LOGGER.info(f"Using: {tmp_path}")
 
-    tmp_info: str = os.path.join(tmp_path, "info.txt")
-    tmp_update: str = os.path.join(tmp_path, "update.dep")
-    tmp_md5: str = os.path.join(tmp_path, "update.dep.MD5")
+    tmp_info: str = os.path.join(tmp_path, "info.json")
+    tmp_update: str = os.path.join(tmp_path, "append.zip")
 
     bytes_per_pixel: int = 4
     keymap: Dict[int, str] = None
@@ -164,12 +160,12 @@ class Config:
     mirrors = [
         {
             "name": "GitHub",
-            "url": "https://github.com/cbepx-me/upgrade/releases/download/source/update.txt",
+            "url": "https://github.com/cbepx-me/upgrade/releases/download/source/update_info.json",
             "region": "Global"
         },
         {
             "name": "GitCode (China)",
-            "url": "https://gitcode.com/cbepx/upgrade/releases/download/source/update.txt",
+            "url": "https://gitcode.com/cbepx/upgrade/releases/download/source/update_info.json",
             "region": "CN"
         }
     ]
@@ -190,6 +186,7 @@ class Config:
         speeds.append((end, mirror))
     speeds.sort(key=lambda x: x[0])
     info_url = speeds[0][1]["url"] if speeds[0][0] != float('inf') else fallback_mirror["url"]
+    server_url = info_url[:-16]
     #LOGGER.info(f"Server List is: {speeds}")
     LOGGER.info(f"Using: {info_url}")
 
@@ -331,6 +328,9 @@ class InputHandler:
 # UI Renderer
 # =========================
 class UIRenderer:
+    _instance: Optional["UIRenderer"] = None
+    _initialized: bool = False
+
 
     def __init__(self, cfg: Config, translator: Translator, hw_info: int):
         self.cfg = cfg
@@ -342,87 +342,66 @@ class UIRenderer:
         self.y_size = y_size
         self.screen_size = x_size * y_size * cfg.bytes_per_pixel
 
-        self.fb: Optional[int] = None
-        self.mm: Optional[mmap.mmap] = None
-
         self.active_image: Optional[Image.Image] = None
         self.active_draw: Optional[ImageDraw.ImageDraw] = None
 
         self.button_y = self.y_size - 40
         self.button_x = self.x_size - 120
 
-        self.fb_screeninfo = self._get_fb_screeninfo(hw_info)
+        if self._initialized:
+            return
+        self.window = self._create_window()
+        self.renderer = self._create_renderer()
+        self.opt_stretch = True
+        self._initialized = True
+
         self._draw_start()
         self.screen_reset()
         self.set_active(self.create_image())
 
-    def _get_fb_screeninfo(self, hw_info: int) -> Optional[bytes]:
-        fb_cfg_path = self.cfg.fb_cfg_path
-        if os.path.exists(fb_cfg_path):
-            with open(fb_cfg_path, "rb") as f:
-                LOGGER.info("Using custom fb config from %s", fb_cfg_path)
-                return f.read()
-
-        blobs: Dict[int, bytes] = {
-            1: b"\xd0\x02\x00\x00\xd0\x02\x00\x00\xd0\x02\x00\x00\xa0\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00F_\x00\x008\x00\x00\x00J\x00\x00\x00\x0f\x00\x00\x00<\x00\x00\x00\n\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            2: b"\xd0\x02\x00\x00\xe0\x01\x00\x00\xd0\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00=\x96\x00\x00,\x00\x00\x006\x00\x00\x00\x0f\x00\x00\x00$\x00\x00\x00\x02\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            3: b"\xe0\x01\x00\x00\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            4: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            5: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\n\x00\x00\x00\"\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            6: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00(\x00\x00\x00 \x00\x00\x00,\x00\x00\x00 \x00\x00\x00\x08\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            7: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0b\x00\x00\x00\x1b\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            8: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0b\x00\x00\x00\x1b\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            9: b"\x80\x02\x00\x00\xe0\x01\x00\x00\x80\x02\x00\x00\xc0\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00^\x00\x00\x00\x96\x00\x00\x00\x00\x00\x00\x00\xc2\xa2\x00\x00\x1a\x00\x00\x00T\x00\x00\x00\x0c\x00\x00\x00\x1e\x00\x00\x00\x14\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-        }
-
-        blob = blobs.get(hw_info)
-        if blob:
-            return blob
-
-        try:
-            fb_fd = os.open("/dev/fb0", os.O_RDWR)
-            try:
-                fb_info = bytearray(160)
-                ioctl(fb_fd, 0x4600, fb_info)
-                LOGGER.info("Read fb config from device /dev/fb0")
-                return bytes(fb_info)
-            finally:
-                os.close(fb_fd)
-        except Exception as e:
-            LOGGER.error("Error reading fb config from device: %s", e)
-            return None
-
     def screen_reset(self) -> None:
-        if self.fb_screeninfo is not None:
-            try:
-                ioctl(self.fb, 0x4601, bytearray(self.fb_screeninfo))
-                LOGGER.info("Screen reset with custom config")
-            except Exception as e:
-                LOGGER.error("Error resetting screen with custom config: %s", e)
-        try:
-            ioctl(self.fb, 0x4611, 0)
-            LOGGER.info("Screen reset with default config")
-        except Exception as e:
-            LOGGER.error("Error resetting screen: %s", e)
+        self.active_draw.rectangle(
+            [0, 0, self.x_size, self.y_size], fill="black"
+        )
 
     def _draw_start(self) -> None:
-        try:
-            self.fb = os.open("/dev/fb0", os.O_RDWR)
-            self.mm = mmap.mmap(self.fb, self.screen_size)
-            LOGGER.info("Framebuffer initialized successfully (%sx%s)", self.x_size, self.y_size)
-        except Exception as e:
-            LOGGER.error("Error initializing framebuffer: %s", e)
-            raise
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255)
+        sdl2.SDL_RenderClear(self.renderer)
+        self.active_image = self.create_image()
+        self.active_draw = ImageDraw.Draw(self.active_image)
+
+    def _create_window(self):
+        window = sdl2.SDL_CreateWindow(
+            "RomM".encode("utf-8"),
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            sdl2.SDL_WINDOWPOS_UNDEFINED,
+            0,
+            0,  # Size ignored in fullscreen mode
+            sdl2.SDL_WINDOW_FULLSCREEN_DESKTOP | sdl2.SDL_WINDOW_SHOWN,
+        )
+
+        if not window:
+            print(f"Failed to create window: {sdl2.SDL_GetError()}")
+            raise RuntimeError("Failed to create window")
+
+        return window
+
+    def _create_renderer(self):
+        renderer = sdl2.SDL_CreateRenderer(
+            self.window, -1, sdl2.SDL_RENDERER_ACCELERATED
+        )
+
+        if not renderer:
+            print(f"Failed to create renderer: {sdl2.SDL_GetError()}")
+            raise RuntimeError("Failed to create renderer")
+
+        sdl2.SDL_SetHint(sdl2.SDL_HINT_RENDER_SCALE_QUALITY, b"0")
+        return renderer
 
     def draw_end(self) -> None:
-        try:
-            if self.mm:
-                self.mm.close()
-            if self.fb:
-                os.close(self.fb)
-            LOGGER.info("Framebuffer closed successfully")
-        except Exception as e:
-            LOGGER.error("Error closing framebuffer: %s", e)
+        sdl2.SDL_DestroyRenderer(self.renderer)
+        sdl2.SDL_DestroyWindow(self.window)
+        sdl2.SDL_Quit()
 
     def create_image(self) -> Image.Image:
         try:
@@ -436,19 +415,56 @@ class UIRenderer:
         self.active_draw = ImageDraw.Draw(self.active_image)
 
     def paint(self) -> None:
-        try:
-            if self.hw_info == 3:
-                img = self.active_image.rotate(90, expand=True)
-                self.mm.seek(0)
-                self.mm.write(img.tobytes())
-            else:
-                self.mm.seek(0)
-                self.mm.write(self.active_image.tobytes())
-        except Exception as e:
-            LOGGER.error("Error painting to screen: %s", e)
+        # Convert PIL image to SDL2 texture at base resolution
+        if self.hw_info == 3:
+            rotated_image = self.active_image.rotate(90, expand=True)
+            rgba_data = rotated_image.tobytes()
+            temp_width, temp_height = rotated_image.size
+        else:
+            rgba_data = self.active_image.tobytes()
+            temp_width, temp_height = self.x_size, self.y_size
+
+        surface = sdl2.SDL_CreateRGBSurfaceWithFormatFrom(
+            rgba_data,
+            temp_width,
+            temp_height,
+            32,
+            temp_width * 4,
+            sdl2.SDL_PIXELFORMAT_RGBA32,
+        )
+        texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface)
+        sdl2.SDL_FreeSurface(surface)
+
+        # Get current window size
+        window_width = ctypes.c_int()
+        window_height = ctypes.c_int()
+        sdl2.SDL_GetWindowSize(
+            self.window, ctypes.byref(window_width), ctypes.byref(window_height)
+        )
+        window_width, window_height = window_width.value, window_height.value
+
+        # Let the user decide whether to stretch to fit or preserve aspect ratio
+        if not self.opt_stretch:
+            scale = min(
+                window_width / temp_width, window_height / temp_height
+            )
+            dst_width = int(temp_width * scale)
+            dst_height = int(temp_height * scale)
+            dst_x = (window_width - dst_width) // 2
+            dst_y = (window_height - dst_height) // 2
+            dst_rect = sdl2.SDL_Rect(dst_x, dst_y, dst_width, dst_height)
+        else:
+            dst_rect = sdl2.SDL_Rect(0, 0, window_width, window_height)
+
+        sdl2.SDL_RenderCopy(self.renderer, texture, None, dst_rect)
+        sdl2.SDL_RenderPresent(self.renderer)
+        sdl2.SDL_DestroyTexture(texture)
+
 
     def clear(self) -> None:
-        self.active_draw.rectangle((0, 0, self.x_size, self.y_size), fill=self.cfg.COLOR_BG)
+        self.active_draw.rectangle(
+            [0, 0, self.x_size, self.y_size], fill="black"
+        )
 
     def text(self, pos, text, font=22, color=None, anchor=None, bold=False) -> None:
         color = color or self.cfg.COLOR_TEXT
@@ -569,7 +585,7 @@ class UIRenderer:
 
         self.rect([bar_left, bar_top, bar_right, bar_bottom], fill=self.cfg.COLOR_BG_LIGHT, radius=bar_height // 2)
 
-        pct = max(0, min(100, percent)) / 100.0
+        pct = max(0, min(100, int(percent))) / 100.0
         filled = int((bar_right - bar_left) * pct) - 20
         filled_right = bar_left + int((bar_right - bar_left) * pct)
         if filled_right > bar_left:
@@ -578,8 +594,8 @@ class UIRenderer:
                 color = self._blend_colors(self.cfg.COLOR_PRIMARY, self.cfg.COLOR_ACCENT, color_ratio)
                 self.rect([i, bar_top, min(i + 2, filled_right), bar_bottom], fill=color, radius=bar_height // 2)
 
-            progress_text = f"{int(percent)}%"
-            self.text((bar_left + filled, y_center), progress_text, font=19, anchor="mm", color=self.cfg.COLOR_TEXT)
+            progress_text = f"{int(percent+1)}%"
+            self.text(((bar_left + bar_right) // 2, y_center), progress_text, font=19, anchor="mm", color=self.cfg.COLOR_TEXT)
 
         if label_top:
             self.text((self.x_size // 2, bar_top - 20), label_top, font=23, anchor="mm")
@@ -591,9 +607,9 @@ class UIRenderer:
         r1, g1, b1 = int(color1[1:3], 16), int(color1[3:5], 16), int(color1[5:7], 16)
         r2, g2, b2 = int(color2[1:3], 16), int(color2[3:5], 16), int(color2[5:7], 16)
 
-        r = int(r1 + (r2 - r1) * ratio)
-        g = int(g1 + (g2 - g1) * ratio)
-        b = int(b1 + (b2 - b1) * ratio)
+        r = max(0, min(255, int(r1 + (r2 - r1) * ratio)))
+        g = max(0, min(255, int(g1 + (g2 - g1) * ratio)))
+        b = max(0, min(255, int(b1 + (b2 - b1) * ratio)))
 
         return f"#{r:02x}{g:02x}{b:02x}"
 
@@ -608,8 +624,7 @@ class Updater:
         self.cfg = cfg
         self.ui = ui
         self.t = translator
-        self.update_url: str = ""
-        self.md5_url: str = ""
+        self.update_info_dict: dict = {}
         self.session = requests.Session()
         self.session.headers.update(self.cfg.headers)
 
@@ -628,7 +643,7 @@ class Updater:
 
         self.session.headers.update(self.cfg.headers)
 
-    def _download_file(self, url, local_path, progress_hook=None):
+    def _download_file(self, url, local_path, progress_hook=None, num_file=None):
         try:
             file_size = 0
             if os.path.exists(local_path):
@@ -681,7 +696,8 @@ class Updater:
                                 progress_hook(
                                     (downloaded - file_size) // block_size,
                                     block_size,
-                                    total_size
+                                    total_size,
+                                    num_file
                                 )
                         break
                     except (requests.exceptions.ChunkedEncodingError,
@@ -770,7 +786,6 @@ class Updater:
 
     def fetch_remote_info(self) -> dict:
         dit = {}
-        update_info = ""
         max_retries = 3
         retry_count = 0
 
@@ -786,10 +801,7 @@ class Updater:
 
                 if os.path.exists(self.cfg.tmp_info):
                     with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
-                        for line in f:
-                            parts = line.split("=")
-                            if len(parts) > 1:
-                                dit[parts[0].strip()] = parts[1].strip()
+                        dit = json.load(f)
 
                 info_filename = "info_zh_CN.txt" if self.t.lang_code in ["zh_CN", "zh_TW"] else "info_en_US.txt"
                 info_url = f"{self.cfg.info_url.rsplit('/', 1)[0]}/{info_filename}"
@@ -806,7 +818,6 @@ class Updater:
                     with open(self.cfg.tmp_info, "r", encoding="utf-8") as f:
                         update_info = f.read()
                         dit['update_info'] = update_info
-
                 break
 
             except (ContentTooShortError, URLError) as e:
@@ -943,8 +954,11 @@ class Updater:
 
         if subtitle:
             subtitle_start_y = panel_y + 30 + title_height + 10
+            subtitle_lines = self._wrap_text(ui, subtitle, subtitle_font_size,
+                                             max_panel_width - 2 * padding - (50 if icon else 0))
 
             if icon:
+                icon_size = 40
                 subtitle_x = icon_x + icon_size + 20
                 anchor = "lm"
             else:
@@ -1036,21 +1050,26 @@ class Updater:
 
         return lines
 
-    def _calculate_speed(self, downloaded: int) -> Tuple[str, str]:
+    def _calculate_speed(self, downloaded: int) -> float | int | str:
         current_time = time.time()
         
         if not hasattr(self, '_speed_data'):
             self._speed_data = {
                 'start_time': current_time,
                 'last_time': current_time,
-                'last_downloaded': 0,
+                'last_downloaded': downloaded,
                 'speed_text': "..."
             }
         
         time_diff = current_time - self._speed_data['last_time']
         if time_diff >= 1.0:
             downloaded_diff = downloaded - self._speed_data['last_downloaded']
-            download_speed = downloaded_diff / time_diff
+
+            if downloaded_diff < 0:
+                self._speed_data['last_downloaded'] = downloaded
+                downloaded_diff = 0
+
+            download_speed = downloaded_diff / time_diff if time_diff > 0 else 0
             
             if download_speed >= 1024 * 1024:
                 speed_text = f"{download_speed / (1024 * 1024):.1f} MB/s"
@@ -1065,88 +1084,6 @@ class Updater:
         
         return self._speed_data['speed_text']
     
-    def update_app(self, new_ver: str) -> None:
-        ui = self.ui
-        t = self.t
-
-        ui.clear()
-        self.ui.text((self.ui.x_size // 2, self.ui.y_size // 2),
-                     f"{t.t('Update the application')} v{cur_app_ver} -> v{new_ver}", font=26, anchor="mm", bold=True)
-        ui.paint()
-        time.sleep(3)
-
-        def progress_hook(block_num: int, block_size: int, total_size: int):
-            try:
-                downloaded = block_num * block_size
-                if total_size > 0:
-                    percent = min(100, downloaded * 100 // total_size)
-                    label_top = t.t("Downloading App Files...")
-                    if total_size >= 1024*1024:
-                        unit_num = 1024*1024
-                        unit = "MB"
-                    else:
-                        unit_num = 1024
-                        unit = "KB"
-                    speed_display = self._calculate_speed(downloaded)
-                    label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
-                    ui.clear()
-                    ui.info_header(t.t("Update application"), t.t("Downloading update package"))
-                    ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
-                    ui.paint()
-            except Exception as e:
-                LOGGER.error("Error updating progress: %s", e)
-
-        LOGGER.info("Starting App update process")
-        self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
-
-        if not self._download_file(self.md5_url, self.cfg.tmp_app_md5, progress_hook):
-            LOGGER.error("Error downloading MD5 file")
-            self.draw_message_center(t.t("Download Error"), t.t("Failed to download verification file."), "✖", "error")
-            MainApp.exit_cleanup(2, self.ui, self.cfg)
-
-        if not self._download_file(self.update_url, self.cfg.tmp_app_update, progress_hook):
-            LOGGER.error("Error downloading update file")
-            self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
-            MainApp.exit_cleanup(2, self.ui, self.cfg)
-
-        LOGGER.info("Verifying downloaded files")
-        self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
-
-        down_md5 = ""
-        check_md5 = ""
-
-        if os.path.exists(self.cfg.tmp_app_update):
-            try:
-                md5_hash = hashlib.md5()
-                with open(self.cfg.tmp_app_update, "rb") as f:
-                    for chunk in iter(lambda: f.read(4096), b""):
-                        md5_hash.update(chunk)
-                down_md5 = md5_hash.hexdigest().lower()
-                LOGGER.info("Calculated MD5 of update file: %s", down_md5)
-            except Exception as e:
-                LOGGER.error("Error calculating MD5: %s", e)
-                down_md5 = ""
-
-        if os.path.exists(self.cfg.tmp_app_md5):
-            try:
-                with open(self.cfg.tmp_app_md5, "r", encoding="utf-8") as f:
-                    check_md5 = f.readline().strip().lower()
-                LOGGER.info("Expected MD5 from file: %s", check_md5)
-            except Exception as e:
-                LOGGER.error("Error reading MD5 file: %s", e)
-                check_md5 = ""
-
-        if down_md5 and check_md5 and down_md5 == check_md5:
-            LOGGER.info("MD5 verification successful")
-            LOGGER.info("Application restart")
-            self.draw_message_center(t.t("Prompt message"), t.t("Updating, restart later..."), "㊙", "info")
-            time.sleep(3)
-            MainApp.exit_not_cleanup(36)
-        else:
-            LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", check_md5, down_md5)
-            self.draw_message_center(t.t("Verification Failed"), t.t("File integrity check failed."), "✖", "error")
-            MainApp.exit_cleanup(3, self.ui, self.cfg)
-
     def show_info(self, info: str) -> None:
         ui = self.ui
         t = self.t
@@ -1319,16 +1256,83 @@ class Updater:
                         lines, text_x, panel_height, text_width, font, current_page
                     )
 
-    def start_update(self, append_active = False) -> None:
+    def update_app(self, new_ver: str, update_url: str, update_md5: str) -> None:
         ui = self.ui
         t = self.t
 
-        def progress_hook(block_num: int, block_size: int, total_size: int):
+        ui.clear()
+        self.ui.text((self.ui.x_size // 2, self.ui.y_size // 2),
+                     f"{t.t('Update the application')} v{cur_app_ver} -> v{new_ver}", font=26, anchor="mm", bold=True)
+        ui.paint()
+        time.sleep(3)
+
+        def progress_hook(block_num: int, block_size: int, total_size: int, num_file=None):
             try:
                 downloaded = block_num * block_size
                 if total_size > 0:
                     percent = min(100, downloaded * 100 // total_size)
-                    label_top = t.t("Downloading Update Files...")
+                    label_top = t.t("Downloading App Files...") + num_file
+                    if total_size >= 1024*1024:
+                        unit_num = 1024*1024
+                        unit = "MB"
+                    else:
+                        unit_num = 1024
+                        unit = "KB"
+                    speed_display = self._calculate_speed(downloaded)
+                    label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
+                    ui.clear()
+                    ui.info_header(t.t("Update application"), t.t("Downloading update package"))
+                    ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
+                    ui.paint()
+            except Exception as e:
+                LOGGER.error("Error updating progress: %s", e)
+
+        LOGGER.info("Starting App update process")
+        self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
+
+        if not self._download_file(update_url, self.cfg.tmp_app_update, progress_hook, '(1/1)'):
+            LOGGER.error("Error downloading update file")
+            self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
+            MainApp.exit_cleanup(2, self.ui, self.cfg)
+
+        LOGGER.info("Verifying downloaded files")
+        self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
+
+        down_md5 = ""
+
+        if os.path.exists(self.cfg.tmp_app_update):
+            try:
+                md5_hash = hashlib.md5()
+                with open(self.cfg.tmp_app_update, "rb") as f:
+                    for chunk in iter(lambda: f.read(4096), b""):
+                        md5_hash.update(chunk)
+                down_md5 = md5_hash.hexdigest().lower()
+                LOGGER.info("Calculated MD5 of update file: %s", down_md5)
+            except Exception as e:
+                LOGGER.error("Error calculating MD5: %s", e)
+                down_md5 = ""
+
+        if down_md5 and update_md5 and down_md5.upper() == update_md5.upper():
+            LOGGER.info("MD5 verification successful")
+            LOGGER.info("Application restart")
+            self.draw_message_center(t.t("Prompt message"), t.t("Updating, restart later..."), "㊙", "info")
+            time.sleep(3)
+            MainApp.exit_not_cleanup(36)
+        else:
+            LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", update_md5, down_md5)
+            self.draw_message_center(t.t("Verification Failed"), t.t("File integrity check failed."), "✖", "error")
+            MainApp.exit_cleanup(3, self.ui, self.cfg)
+
+    def start_update(self, update_file_list: list) -> None:
+        ui = self.ui
+        t = self.t
+
+        def progress_hook(block_num: int, block_size: int, total_size: int, num_file=None):
+            try:
+                downloaded = block_num * block_size
+                if total_size > 0:
+                    percent = min(100, downloaded * 100 // total_size)
+                    label_top = t.t("Downloading Update Files...") + num_file
                     if total_size >= 1024*1024:
                         unit_num = 1024*1024
                         unit = "MB"
@@ -1347,12 +1351,125 @@ class Updater:
         LOGGER.info("Starting OS update process")
         self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
 
-        if not self._download_file(self.md5_url, self.cfg.tmp_md5, progress_hook):
-            LOGGER.error("Error downloading MD5 file")
-            self.draw_message_center(t.t("Download Error"), t.t("Failed to download verification file."), "✖", "error")
-            MainApp.exit_cleanup(2, self.ui, self.cfg)
+        tmp_space = shutil.disk_usage("/tmp")
+        mmc_space = shutil.disk_usage("/mnt/mmc")
+        sdcard_space = shutil.disk_usage("/mnt/sdcard")
+        if tmp_space == sdcard_space:
+            target_path = "/mnt/mmc/tmp" if mmc_space > tmp_space else "/tmp/tmp"
+        else:
+            target_path = "/mnt/mmc/tmp" if mmc_space > sdcard_space else "/mnt/sdcard/tmp"
+        LOGGER.info("Starting update from path %s", target_path)
 
-        if not self._download_file(self.update_url, self.cfg.tmp_update, progress_hook):
+        if not os.path.exists(target_path):
+            os.makedirs(target_path, exist_ok=True)
+
+        file_num = 1
+        for item in update_file_list:
+            down_url = self.cfg.server_url + item['filename']
+            target_file = os.path.join(target_path, item['filename'])
+            if not self._download_file(down_url, target_file, progress_hook, str(f'({file_num}/{len(update_file_list)})')):
+                LOGGER.error("Error downloading update file")
+                self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
+                shutil.rmtree(target_path)
+                MainApp.exit_cleanup(2, self.ui, self.cfg)
+            file_num+=1
+
+        LOGGER.info("Verifying downloaded files")
+        self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
+        for item in update_file_list:
+            target_file = os.path.join(target_path, item['filename'])
+            down_md5 = ""
+            check_md5 = item['md5']
+            if os.path.exists(target_file):
+                try:
+                    md5_hash = hashlib.md5()
+                    with open(target_file, "rb") as f:
+                        for chunk in iter(lambda: f.read(4096), b""):
+                            md5_hash.update(chunk)
+                    down_md5 = md5_hash.hexdigest().lower()
+                    LOGGER.info("Calculated MD5 of update file: %s", down_md5)
+                except Exception as e:
+                    LOGGER.error("Error calculating MD5: %s", e)
+                    down_md5 = ""
+
+            if down_md5 and check_md5 and down_md5.upper() == check_md5.upper():
+                LOGGER.info(f"{item['filename']}: MD5 verification successful")
+            else:
+                LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", check_md5, down_md5)
+                self.draw_message_center(t.t("Verification Failed"), t.t("File integrity check failed."), "✖", "error")
+                shutil.rmtree(target_path)
+                MainApp.exit_cleanup(3, self.ui, self.cfg)
+
+        LOGGER.info("Starting install process")
+        mod_path = "/mnt/mod"
+        update_path = os.path.join(mod_path, 'update')
+        data_path = os.path.join(update_path, 'mod', 'data')
+        if not os.path.exists(data_path):
+            os.makedirs(data_path, exist_ok=True)
+        if os.path.isdir(update_path):
+            shutil.rmtree(update_path)
+        os.makedirs(update_path, exist_ok=True)
+
+        for item in update_file_list:
+            source_file = os.path.join(target_path, item['filename'])
+            target_file = os.path.join(data_path, item['filename'])
+            if item['filename'] == 'update.zip':
+                if self.unpack_zip(source_file, mod_path) == 0:
+                    LOGGER.info(f"{item['filename']}: installation completed")
+                else:
+                    LOGGER.error(f"Error unpacking update file: {item['filename']}")
+                    self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖",
+                                             "error")
+                    shutil.rmtree(target_path)
+                    MainApp.exit_cleanup(4, self.ui, self.cfg)
+            else:
+                try:
+                    self.draw_message_center(t.t("System Update"), t.t("Extracting files..."), "✪", "info")
+                    shutil.copy(source_file, target_file)
+                    LOGGER.info(f"{item['filename']}: installation completed")
+                except Exception as e:
+                    LOGGER.error(f"Error copy update file: {item['filename']}")
+                    self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖",
+                                             "error")
+                    shutil.rmtree(target_path)
+                    MainApp.exit_cleanup(4, self.ui, self.cfg)
+
+        self.draw_message_center(t.t("System Update"), t.t("Ready, start upgrading..."), "✔", "success")
+        time.sleep(3)
+        autostart = True
+        shutil.rmtree(target_path)
+        MainApp.reboot(self.ui, self.cfg, autostart)
+
+
+    def start_append(self, update_url, md5) -> None:
+        ui = self.ui
+        t = self.t
+
+        def progress_hook(block_num: int, block_size: int, total_size: int, num_file=None):
+            try:
+                downloaded = block_num * block_size
+                if total_size > 0:
+                    percent = min(100, downloaded * 100 // total_size)
+                    label_top = t.t("Downloading Update Files...") + num_file
+                    if total_size >= 1024*1024:
+                        unit_num = 1024*1024
+                        unit = "MB"
+                    else:
+                        unit_num = 1024
+                        unit = "KB"
+                    speed_display = self._calculate_speed(downloaded)
+                    label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
+                    ui.clear()
+                    ui.info_header(t.t("System Update"), t.t("Downloading update package"))
+                    ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
+                    ui.paint()
+            except Exception as e:
+                LOGGER.error("Error updating progress: %s", e)
+
+        LOGGER.info("Starting OS append update process")
+        self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
+
+        if not self._download_file(update_url, self.cfg.tmp_update, progress_hook, '(1/1)'):
             LOGGER.error("Error downloading update file")
             self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
             MainApp.exit_cleanup(2, self.ui, self.cfg)
@@ -1361,7 +1478,6 @@ class Updater:
         self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
 
         down_md5 = ""
-        check_md5 = ""
 
         if os.path.exists(self.cfg.tmp_update):
             try:
@@ -1375,29 +1491,27 @@ class Updater:
                 LOGGER.error("Error calculating MD5: %s", e)
                 down_md5 = ""
 
-        if os.path.exists(self.cfg.tmp_md5):
-            try:
-                with open(self.cfg.tmp_md5, "r", encoding="utf-8") as f:
-                    check_md5 = f.readline().strip().lower()
-                LOGGER.info("Expected MD5 from file: %s", check_md5)
-            except Exception as e:
-                LOGGER.error("Error reading MD5 file: %s", e)
-                check_md5 = ""
-
-        if down_md5 and check_md5 and down_md5 == check_md5:
+        if down_md5 and md5 and down_md5.upper() == md5.upper():
             LOGGER.info("MD5 verification successful")
-            target_path = "/mnt/mmc" if append_active else "/mnt/mod"
-            autostart = False if append_active else True
+            tmp_space = shutil.disk_usage("/tmp")
+            mmc_space = shutil.disk_usage("/mnt/mmc")
+            sdcard_space = shutil.disk_usage("/mnt/sdcard")
+            if tmp_space == sdcard_space:
+                target_path = "/mnt/mmc"
+            else:
+                target_path = "/mnt/mmc" if mmc_space > sdcard_space else "/mnt/sdcard"
+            LOGGER.info("Starting append update from path %s", target_path)
+
             if self.unpack_zip(self.cfg.tmp_update, target_path) == 0:
                 self.draw_message_center(t.t("System Update"), t.t("Ready, start upgrading..."), "✔", "success")
                 time.sleep(3)
-                MainApp.reboot(self.ui, self.cfg, autostart)
+                MainApp.reboot(self.ui, self.cfg)
             else:
                 LOGGER.error("Error unpacking update file")
                 self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖", "error")
                 MainApp.exit_cleanup(4, self.ui, self.cfg)
         else:
-            LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", check_md5, down_md5)
+            LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", md5, down_md5)
             self.draw_message_center(t.t("Verification Failed"), t.t("File integrity check failed."), "✖", "error")
             MainApp.exit_cleanup(3, self.ui, self.cfg)
 
@@ -1405,10 +1519,6 @@ class Updater:
         if not os.path.exists(dep_path):
             LOGGER.error("Update file not found: %s", dep_path)
             return 1
-        update_path = os.path.join(target_path, "update")
-        if os.path.isdir(update_path):
-            shutil.rmtree(update_path)
-        os.makedirs(update_path, exist_ok=True)
         try:
             with zipfile.ZipFile(dep_path, "r") as zip_ref:
                 namelist = zip_ref.namelist()
@@ -1488,7 +1598,7 @@ class MainApp:
     def exit_cleanup(code: int, ui: UIRenderer, cfg: Config) -> None:
         LOGGER.info("Exiting with code %s", code)
         try:
-            for p in (cfg.tmp_info, cfg.tmp_update, cfg.tmp_md5):
+            for p in (cfg.tmp_info, cfg.tmp_update):
                 if os.path.exists(p):
                     os.remove(p)
             ui.draw_end()
@@ -1501,7 +1611,7 @@ class MainApp:
     def reboot(ui: UIRenderer, cfg: Config, auto = False) -> None:
         LOGGER.info("Rebooting system")
         try:
-            for p in (cfg.tmp_info, cfg.tmp_update, cfg.tmp_md5, "/mnt/mod/update.dep"):
+            for p in (cfg.tmp_info, cfg.tmp_update, "/mnt/mod/update.dep"):
                 if os.path.exists(p):
                     os.remove(p)
             if auto:
@@ -1547,7 +1657,6 @@ fi
         self.ui.paint()
         time.sleep(2)
 
-        cur_ver = "Unknown"
         cur_ver = self.updater.read_current_version()
 
         if not self.updater.is_connected():
@@ -1569,51 +1678,58 @@ fi
             "☯", "info"
         )
 
+        app_ver = app_update_url = app_md5 = update_ver = data_ver = data_update_url = data_md5 = ""
+        update_file_list = []
+
+        self.updater.update_info_dict = self.updater.fetch_remote_info()
+        LOGGER.info(self.updater.update_info_dict)
+
+        if self.updater.update_info_dict.get('app'):
+            app_ver = self.updater.update_info_dict.get('app').get('version', 'Unknown')
+            app_update_url = self.cfg.server_url + self.updater.update_info_dict.get('app').get('filename')
+            app_md5 = self.updater.update_info_dict.get('app').get('md5')
+            LOGGER.info(f"app: v{app_ver} | {app_update_url} | {app_md5}")
+
+        if self.updater.update_info_dict.get('update'):
+            update_file_dict = self.updater.update_info_dict.get('update')
+            if update_file_dict.get(self.board_info):
+                update_file_list = update_file_dict.get('default') + update_file_dict.get(self.board_info)
+            else:
+                update_file_list = update_file_dict.get('default') + update_file_dict.get('RG35xxSP')
+
+            update_ver = update_file_dict.get('version', 'Unknown')
+            LOGGER.info(f'update: v{update_ver} | {update_file_list}' )
+
+        if self.updater.update_info_dict.get('data'):
+            data_ver = self.updater.update_info_dict.get('data').get('version', 'Unknown')
+            data_update_url = self.cfg.server_url + self.updater.update_info_dict.get('data').get('filename')
+            data_md5 = self.updater.update_info_dict.get('data').get('md5')
+            LOGGER.info(f"data: v{data_ver} | {data_update_url} | {data_md5}")
+
+
+        update_info = self.updater.update_info_dict.get('update_info', 'Unknown')
+
+        if app_ver != "Unknown" and cur_app_ver < app_ver and bool(app_update_url):
+            self.updater.update_app(app_ver, app_update_url, app_md5)
+
         update_active = False
         append_active = False
 
-        url_dit = self.updater.fetch_remote_info()
-        for key, value in url_dit.items():
-            if key != "update_info":
-                LOGGER.info("%s -> %s", key, value)
-
-        app_ver = url_dit.get('app_ver', 'Unknown')
-        app_update_url = url_dit.get('app_update_url')
-        app_md5_url = url_dit.get('app_md5_url')
-        update_ver = url_dit.get('update_ver', 'Unknown')
-        update_url = url_dit.get('update_url')
-        md5_url = url_dit.get('md5_url')
-        data_ver = url_dit.get('data_ver', 'Unknown')
-        data_update_url = url_dit.get('data_update_url')
-        data_md5_url = url_dit.get('data_md5_url')
-        update_info = url_dit.get('update_info', 'Unknown')
-
-        if app_ver != "Unknown" and cur_app_ver < app_ver and bool(app_update_url):
-            self.updater.update_url = app_update_url
-            self.updater.md5_url = app_md5_url
-            self.updater.update_app(app_ver)
-
-
         os_cur_ver = self.updater.read_current_os_version()
         if (
-            cur_ver != "Unknown" and update_ver != "Unknown" and cur_ver < base_ver and bool(update_url)
+            cur_ver != "Unknown" and update_ver != "Unknown" and cur_ver < base_ver and bool(update_file_list)
         ) or (
-            cur_ver == "Unknown" and os_cur_ver >= "20250211" and update_ver != "Unknown" and bool(update_url)
+            cur_ver == "Unknown" and os_cur_ver >= "20250211" and update_ver != "Unknown" and bool(update_file_list)
         ):
             update_active = True
-            self.updater.update_url = update_url
-            self.updater.md5_url = md5_url
             new_ver = update_ver
         elif cur_ver != "Unknown" and data_ver != "Unknown" and cur_ver < data_ver and bool(data_update_url):
             update_active = True
             append_active = True
-            self.updater.update_url = data_update_url
-            self.updater.md5_url = data_md5_url
             new_ver = data_ver
         else:
-            self.updater.update_url = data_update_url
-            self.updater.md5_url = data_md5_url
-            new_ver = data_ver
+            new_ver = "Unknown"
+        self.skip_first_input = False
 
         while True:
             try:
@@ -1630,7 +1746,10 @@ fi
                     MainApp.exit_cleanup(0, self.ui, self.cfg)
 
                 elif update_active and self.input.is_key("A"):
-                    self.updater.start_update(append_active)
+                    if append_active:
+                        self.updater.start_append(data_update_url, data_md5)
+                    else:
+                        self.updater.start_update(update_file_list)
 
                 elif self.input.is_key("Y"):
                     self.updater.show_info(update_info)
