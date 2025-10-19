@@ -994,8 +994,7 @@ PORT_NAME=$(basename $0 .sh)
 
 for port in "${ARCH_PORT[@]}"; do
     if [[ "$PORT_NAME" == "$port" ]]; then
-        echo "$(date): Разрешенный порт PORT_NAME обратился к control.txt" >> /tmp/control_access.log
-	export DEVICE_ARCH="armhf"
+	    export DEVICE_ARCH="armhf"
         break
     fi
 done
