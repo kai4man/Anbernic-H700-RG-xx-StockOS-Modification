@@ -989,7 +989,17 @@ fi
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib32
 export raloc="/mnt/vendor/deep/retro"
 export raconf="--config /.config/retroarch/retroarch.cfg"
-export DEVICE_ARCH="armhf"
+ARCH_PORT=("2048" "Cave Story")
+PORT_NAME=$(basename $0 .sh)
+
+for port in "${ARCH_PORT[@]}"; do
+    if [[ "$PORT_NAME" == "$port" ]]; then
+        echo "$(date): Разрешенный порт PORT_NAME обратился к control.txt" >> /tmp/control_access.log
+	export DEVICE_ARCH="armhf"
+        break
+    fi
+done
+
 if [[ -e "/dev/input/by-path/platform-soc@03000000:gpio_keys-event-joystick" ]]; then
     echo 1 > /sys/class/power_supply/axp2202-battery/nds_esckey
     dpid=`ps -A| grep "portsCtrl.dge"| awk 'NR==1{print $1}'`
