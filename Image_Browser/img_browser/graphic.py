@@ -355,20 +355,24 @@ class UserInterface:
 
     def display_image(self, image_path,
                     target_width=None, target_height=None, 
-                    rota = 1, zoom=1.0, rotation=0):
+                    zoom=None, rotation=0):
         if hw_info == 3 and '/anbernic/bootlogo/' in image_path:
             target_width = 480
             target_height = 640
-        if target_width is None:
-            target_width = int(self.screen_width * zoom)
-        if target_height is None:
-            target_height = int(self.screen_height * zoom)
         img = Image.open(image_path)
         if rotation != 0:
             img = img.rotate(rotation, expand=True)
-        img.thumbnail((target_width, target_height))
-        paste_x = 0
-        paste_y = 0
+        if zoom is None:
+            x_zoom = self.screen_width / img.width
+            y_zoom = self.screen_height / img.height
+            zoom = min(x_zoom, y_zoom)
+        if target_width is None:
+            target_width = int(img.width * zoom)
+        if target_height is None:
+            target_height = int(img.height * zoom)
+        img = img.resize((target_width, target_height), Image.LANCZOS)
+        paste_x = (self.screen_width - target_width) // 2
+        paste_y = (self.screen_height - target_height) // 2
         if hw_info == 3 and '/anbernic/bootlogo/' in image_path:
             img = img.rotate(-90, expand=True)
         self.active_image.paste(img, (paste_x, paste_y))
