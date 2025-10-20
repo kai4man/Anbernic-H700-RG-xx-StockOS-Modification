@@ -224,7 +224,7 @@ def enter_fullscreen(image_path, is_slideshow=False):
     if not is_slideshow:
         current_window = "image_viewer"
     gr.draw_clear()
-    gr.display_image(image_path, rota=1 if hw_info==3 else 0)
+    gr.display_image(image_path)
     gr.draw_paint()
 
 def exit_fullscreen():
