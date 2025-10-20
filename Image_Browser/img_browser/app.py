@@ -214,7 +214,8 @@ def handle_slideshow_input():
         elif input.slide_key():
             slideshow_active = False
             current_window = "browser"
-            selected_index = slideshow_index
+            if len(slideshow_images)>1:
+                selected_index = slideshow_index
             skip_input_check = True
             return
 
