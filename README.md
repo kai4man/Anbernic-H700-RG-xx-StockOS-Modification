@@ -31,6 +31,12 @@ Stock OS Modification is a project built on the StockOS of Anbernic, which is en
    You can use the script I provided to complete the flashing process. Please place the image file and script file in the same path, run the script, and follow the prompts to complete the subsequent operations. Please ensure that gdisk is installed before use:
    - Solution: https://github.com/cbepx-me/Anbernic-H700-RG-xx-StockOS-Modification/blob/main/flash_dd_with_gpt.sh
 
+## PortMaster related issues should be raised here:
+https://github.com/kai4man/PortMaster-for-StockOS-MOD
+
+### Compatible Games:
+[**📋 Check the Working Ports List**](https://docs.google.com/spreadsheets/d/1UlxRCSIfNkZIiCMAgo8eFqKhsIbrLA_1d3lFdVyS4q8/edit?gid=0) - regularly updated spreadsheet with tested games.
+
 ## For more information, please visit
 https://github.com/cbepx-me/RG35xx-P-RG35xx-H-Modification/wiki
 
