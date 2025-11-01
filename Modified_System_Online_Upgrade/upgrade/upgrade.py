@@ -18,6 +18,7 @@ import struct
 import sys
 import time
 import zipfile
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -28,8 +29,9 @@ from urllib.error import ContentTooShortError, URLError
 # =========================
 from PIL import Image, ImageDraw, ImageFont
 
-cur_app_ver = "1.1.0"
+cur_app_ver = "1.1.2"
 base_ver = "3.8.0"
+
 
 def ensure_requests():
     try:
@@ -64,7 +66,7 @@ if ensure_requests():
 # =========================
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(APP_PATH, "update.log")
-log_delete = 0
+log_delete = 1
 if log_delete and os.path.exists(LOG_FILE):
     os.remove(LOG_FILE)
 
@@ -83,7 +85,6 @@ LOGGER.info(f"=== Start Log ===")
 # =========================
 @dataclass
 class Config:
-
     board_mapping: Dict[str, int] = None
     system_list: Tuple[str, ...] = (
         "zh_CN",
@@ -98,13 +99,13 @@ class Config:
         "pt_BR",
     )
 
-    color_text = "#ffffff"
     COLOR_PRIMARY: str = "#3563eb"  # Primary hue - Professional blue
     COLOR_PRIMARY_LIGHT: str = "#3b82f6"  # light blue
     COLOR_PRIMARY_DARK: str = "#1d4ed8"  # dark blue
-    COLOR_SECONDARY: str = "#f59e0b"  # Secondary color - amber
-    COLOR_ACCENT: str = "#10b981"  # accent color - green
-    COLOR_DANGER: str = "#ef4444"  # DANGER/ERROR COLOR - RED
+    COLOR_SECONDARY : str = "#f59e0b"  # Secondary color - amber
+    COLOR_ACCENT: str = "#10b981"  # accent color
+    COLOR_DANGER: str = "#ef4444"  # DANGER/ERROR COLOR
+    COLOR_BUTTON: str = "#163a9d"  # BUTTON COLOR
 
     COLOR_BG: str = "#111827"  # Background color - dark blue grey
     COLOR_BG_LIGHT: str = "#1f2937"  # Light background color
@@ -126,6 +127,7 @@ class Config:
     os_ver_cfg_path: str = "/mnt/vendor/oem/version.ini"
 
     tmp_app_update: str = "/tmp/app.tar.gz"
+    target_path: str = ""
 
     tmp_list = [
         "/dev/shm",
@@ -142,7 +144,7 @@ class Config:
             free_space.append((free_num, tmp))
     free_space.sort(key=lambda x: x[0], reverse=True)
     tmp_path: str = free_space[0][1] if free_space[0][1] else "/tmp"
-    LOGGER.info(f"Using: {tmp_path}")
+    LOGGER.info(f"Use the temporary download path: {tmp_path}")
 
     tmp_info: str = os.path.join(tmp_path, "info.json")
     tmp_update: str = os.path.join(tmp_path, "append.zip")
@@ -160,6 +162,11 @@ class Config:
     mirrors = [
         {
             "name": "GitHub",
+            "url": "http://192.168.1.119/update_info.json",
+            "region": "Global"
+        },
+        {
+            "name": "GitHub",
             "url": "https://github.com/cbepx-me/upgrade/releases/download/source/update_info.json",
             "region": "Global"
         },
@@ -169,7 +176,7 @@ class Config:
             "region": "CN"
         }
     ]
-    
+
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'
     }
@@ -187,8 +194,8 @@ class Config:
     speeds.sort(key=lambda x: x[0])
     info_url = speeds[0][1]["url"] if speeds[0][0] != float('inf') else fallback_mirror["url"]
     server_url = info_url[:-16]
-    #LOGGER.info(f"Server List is: {speeds}")
-    LOGGER.info(f"Using: {info_url}")
+    # LOGGER.info(f"Server List is: {speeds}")
+    LOGGER.info(f"Use the downloaded server: {server_url}")
 
     def __post_init__(self):
         if self.board_mapping is None:
@@ -319,6 +326,11 @@ class InputHandler:
             return True
         return False
 
+    def slide_key(self) -> bool:
+        if self.code_name:
+            return True
+        return False
+
     def reset(self) -> None:
         self.code_name = ""
         self.value = 0
@@ -330,7 +342,6 @@ class InputHandler:
 class UIRenderer:
     _instance: Optional["UIRenderer"] = None
     _initialized: bool = False
-
 
     def __init__(self, cfg: Config, translator: Translator, hw_info: int):
         self.cfg = cfg
@@ -460,7 +471,6 @@ class UIRenderer:
         sdl2.SDL_RenderPresent(self.renderer)
         sdl2.SDL_DestroyTexture(texture)
 
-
     def clear(self) -> None:
         self.active_draw.rectangle(
             [0, 0, self.x_size, self.y_size], fill="black"
@@ -509,7 +519,7 @@ class UIRenderer:
             self.text((self.x_size // 2, xy[1] + 15), title, font=20, anchor="mm", bold=True)
 
     def button(self, xy, label: str, icon: str = None, primary: bool = False) -> None:
-        fill_color = self.cfg.COLOR_PRIMARY if primary else self.cfg.COLOR_CARD_LIGHT
+        fill_color = self.cfg.COLOR_BUTTON if primary else self.cfg.COLOR_CARD_LIGHT
         self.rect(xy, fill=fill_color, outline=self.cfg.COLOR_BORDER, radius=8)
 
         font_path = self.cfg.font_file
@@ -544,6 +554,7 @@ class UIRenderer:
             ratio = i / 50
             r = self._blend_colors(self.cfg.COLOR_PRIMARY_DARK, self.cfg.COLOR_PRIMARY, ratio)
             self.rect([0, i, self.x_size, i + 1], fill=r)
+            self.rect([0, self.y_size, self.x_size, self.y_size-i-1], fill=r)
 
         self.text((self.x_size // 2, 20), title, font=26, anchor="mm", bold=True)
 
@@ -594,8 +605,9 @@ class UIRenderer:
                 color = self._blend_colors(self.cfg.COLOR_PRIMARY, self.cfg.COLOR_ACCENT, color_ratio)
                 self.rect([i, bar_top, min(i + 2, filled_right), bar_bottom], fill=color, radius=bar_height // 2)
 
-            progress_text = f"{int(percent+1)}%"
-            self.text(((bar_left + bar_right) // 2, y_center), progress_text, font=19, anchor="mm", color=self.cfg.COLOR_TEXT)
+            progress_text = f"{int(percent + 1)}%"
+            self.text(((bar_left + bar_right) // 2, y_center), progress_text, font=19, anchor="mm",
+                      color=self.cfg.COLOR_TEXT)
 
         if label_top:
             self.text((self.x_size // 2, bar_top - 20), label_top, font=23, anchor="mm")
@@ -612,6 +624,7 @@ class UIRenderer:
         b = max(0, min(255, int(b1 + (b2 - b1) * ratio)))
 
         return f"#{r:02x}{g:02x}{b:02x}"
+
 
 # =========================
 # Updater (network + verify + unzip)
@@ -657,7 +670,17 @@ class Updater:
             response = self.session.get(url, stream=True, timeout=(60, 300), headers=headers)
 
             if file_size > 0 and response.status_code == 416:  # Range Not Satisfiable
-                LOGGER.warning("Server doesn't support range requests, restarting download")
+                content_range = response.headers.get('content-range', '')
+                if content_range.startswith('bytes */'):
+                    try:
+                        total_size_from_server = int(content_range.split('/')[1])
+                        if file_size >= total_size_from_server:
+                            LOGGER.info("File already fully downloaded (416 due to complete file)")
+                            return True
+                    except (ValueError, IndexError):
+                        pass
+
+                LOGGER.warning("Server doesn't support range requests or range invalid, restarting download")
                 os.remove(local_path)
                 file_size = 0
                 headers.pop('Range', None)
@@ -684,9 +707,16 @@ class Updater:
             mode = 'ab' if file_size > 0 else 'wb'
 
             with open(local_path, mode) as f:
+                self.input.reset()
+                thread = threading.Thread(target=self.input.poll)
+                thread.start()
                 while retry_count <= max_retries:
                     try:
                         for data in response.iter_content(block_size):
+                            if self.input.slide_key():
+                                LOGGER.info("Download cancelled by user")
+                                return "cancelled"
+
                             downloaded += len(data)
                             f.write(data)
                             f.flush()
@@ -765,9 +795,9 @@ class Updater:
             ver_file = Path(self.cfg.ver_cfg_path)
             if ver_file.exists():
                 ver = ver_file.read_text().splitlines()[0]
-                LOGGER.info("Current version: %s", ver)
+                LOGGER.info("Current MOD version: %s", ver)
                 return ver
-            LOGGER.warning("Version file not found")
+            LOGGER.warning(f"Version file not found: {ver_file}")
         except Exception as e:
             LOGGER.error("Error reading version file: %s", e)
         return "Unknown"
@@ -777,11 +807,11 @@ class Updater:
             ver_file = Path(self.cfg.os_ver_cfg_path)
             if ver_file.exists():
                 ver = ver_file.read_text().splitlines()[0]
-                LOGGER.info("Current OS version: %s", ver)
+                LOGGER.info("Current OS Date version: %s", ver)
                 return ver
-            LOGGER.warning("OS version file not found")
+            LOGGER.warning(f"OS Date version file not found: {ver_file}")
         except Exception as e:
-            LOGGER.error("Error reading OS version file: %s", e)
+            LOGGER.error("Error reading OS Date version file: %s", e)
         return "Unknown"
 
     def fetch_remote_info(self) -> dict:
@@ -791,7 +821,7 @@ class Updater:
 
         while retry_count <= max_retries:
             try:
-                LOGGER.info("Downloading version info from %s (attempt %s/%s)",
+                LOGGER.info("Downloading update info from %s (attempt %s/%s)",
                             self.cfg.info_url, retry_count + 1, max_retries + 1)
                 response = self.session.get(self.cfg.info_url, timeout=10)
                 response.raise_for_status()
@@ -823,14 +853,14 @@ class Updater:
             except (ContentTooShortError, URLError) as e:
                 retry_count += 1
                 if retry_count > max_retries:
-                    LOGGER.error("Error downloading version info after %s attempts: %s", max_retries + 1, e)
+                    LOGGER.error("Error downloading update info after %s attempts: %s", max_retries + 1, e)
                     break
                 LOGGER.warning("Attempt %s failed, retrying in %s seconds: %s",
                                retry_count, retry_count * 2, e)
                 time.sleep(retry_count * 2)
 
             except Exception as e:
-                LOGGER.error("Unexpected error processing version info: %s", e)
+                LOGGER.error("Unexpected error processing update info: %s", e)
                 break
 
         return dit
@@ -985,6 +1015,9 @@ class Updater:
             button_width = 140
             button_height = 36
             exit_x = ui.x_size - button_width - 20
+            if os.path.exists(LOG_FILE):
+                ui.button([20, button_y, 20 + button_width, button_y + button_height],
+                          self.t.t("Show Log"), "Y", True)
             ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
                       self.t.t("Exit"), "B", True)
         ui.paint()
@@ -997,6 +1030,11 @@ class Updater:
                 self.input.poll()
 
             if self.input.is_key("B"):
+                break
+            elif os.path.exists(LOG_FILE) and self.input.is_key("Y"):
+                with open(LOG_FILE, "r") as log_file:
+                    log_content = log_file.read()
+                    self.show_info(log_content)
                 break
 
     def _wrap_text(self, ui: UIRenderer, text: str, font_size: int, max_width: int) -> list:
@@ -1052,7 +1090,7 @@ class Updater:
 
     def _calculate_speed(self, downloaded: int) -> float | int | str:
         current_time = time.time()
-        
+
         if not hasattr(self, '_speed_data'):
             self._speed_data = {
                 'start_time': current_time,
@@ -1060,7 +1098,7 @@ class Updater:
                 'last_downloaded': downloaded,
                 'speed_text': "..."
             }
-        
+
         time_diff = current_time - self._speed_data['last_time']
         if time_diff >= 1.0:
             downloaded_diff = downloaded - self._speed_data['last_downloaded']
@@ -1070,20 +1108,20 @@ class Updater:
                 downloaded_diff = 0
 
             download_speed = downloaded_diff / time_diff if time_diff > 0 else 0
-            
+
             if download_speed >= 1024 * 1024:
                 speed_text = f"{download_speed / (1024 * 1024):.1f} MB/s"
             elif download_speed >= 1024:
                 speed_text = f"{download_speed / 1024:.1f} KB/s"
             else:
                 speed_text = f"{download_speed:.1f} B/s"
-            
+
             self._speed_data['last_time'] = current_time
             self._speed_data['last_downloaded'] = downloaded
             self._speed_data['speed_text'] = speed_text
-        
+
         return self._speed_data['speed_text']
-    
+
     def show_info(self, info: str) -> None:
         ui = self.ui
         t = self.t
@@ -1199,12 +1237,12 @@ class Updater:
                             truncated_line = truncated_line[:-1]
                         line = truncated_line + "..."
 
-                ui.text((text_x, y_pos), line, font=22, anchor="lm")
+                ui.text((text_x, y_pos), line, font=19, anchor="lm")
 
             if total_pages > 1:
                 page_info = f"{page + 1}/{total_pages}"
                 page_x = ui.x_size - 20
-                ui.text((page_x, text_y - 15), page_info, font=18,
+                ui.text((page_x, text_y - 15), page_info, font=19,
                         color=ui.cfg.COLOR_TEXT_SECONDARY, anchor="rm")
 
             button_y = ui.y_size - 50
@@ -1214,14 +1252,14 @@ class Updater:
             if total_pages > 1:
                 prev_x = 20
                 ui.button([prev_x, button_y, prev_x + button_width, button_y + button_height],
-                              t.t("Previous"), "L1", True)
+                          t.t("Previous"), "L1", True)
 
-                next_x = 30 + button_width
+                next_x = ui.x_size // 2 - button_width
                 ui.button([next_x, button_y, next_x + button_width, button_y + button_height],
-                              t.t("Next"), "R1", True)
+                          t.t("Next"), "R1", True)
                 exit_x = ui.x_size - button_width - 20
                 ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
-                              t.t("Exit"), "B", True)
+                          t.t("Exit"), "B", True)
             else:
                 exit_x = ui.x_size - button_width - 20
                 ui.button([exit_x, button_y, exit_x + button_width, button_y + button_height],
@@ -1272,8 +1310,8 @@ class Updater:
                 if total_size > 0:
                     percent = min(100, downloaded * 100 // total_size)
                     label_top = t.t("Downloading App Files...") + num_file
-                    if total_size >= 1024*1024:
-                        unit_num = 1024*1024
+                    if total_size >= 1024 * 1024:
+                        unit_num = 1024 * 1024
                         unit = "MB"
                     else:
                         unit_num = 1024
@@ -1282,20 +1320,31 @@ class Updater:
                     label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
                     ui.clear()
                     ui.info_header(t.t("Update application"), t.t("Downloading update package"))
+                    ui.text((ui.x_size // 2, ui.y_size - 120),
+                            t.t("Tip: Press any key to cancel the download and return to the main menu"),
+                            font=22, anchor="mm", color=ui.cfg.COLOR_SECONDARY)
                     ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
                     ui.paint()
             except Exception as e:
                 LOGGER.error("Error updating progress: %s", e)
 
-        LOGGER.info("Starting App update process")
+        LOGGER.info("Starting upgrade app process")
         self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
 
-        if not self._download_file(update_url, self.cfg.tmp_app_update, progress_hook, '(1/1)'):
-            LOGGER.error("Error downloading update file")
+        download_result = self._download_file(update_url, self.cfg.tmp_app_update, progress_hook, '(1/1)')
+
+        if download_result == "cancelled":
+            LOGGER.info("App update cancelled by user")
+            self.draw_message_center(t.t("Download Cancelled"), t.t("Returning to main menu..."), "⏹", "info")
+            time.sleep(2)
+            return
+
+        if not download_result:
+            LOGGER.error(f"Error downloading update file: {update_url}")
             self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
             MainApp.exit_cleanup(2, self.ui, self.cfg)
 
-        LOGGER.info("Verifying downloaded files")
+        LOGGER.info(f"Verifying downloaded files: {self.cfg.tmp_app_update}")
         self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
 
         down_md5 = ""
@@ -1333,8 +1382,8 @@ class Updater:
                 if total_size > 0:
                     percent = min(100, downloaded * 100 // total_size)
                     label_top = t.t("Downloading Update Files...") + num_file
-                    if total_size >= 1024*1024:
-                        unit_num = 1024*1024
+                    if total_size >= 1024 * 1024:
+                        unit_num = 1024 * 1024
                         unit = "MB"
                     else:
                         unit_num = 1024
@@ -1343,41 +1392,53 @@ class Updater:
                     label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
                     ui.clear()
                     ui.info_header(t.t("System Update"), t.t("Downloading update package"))
+                    ui.text((ui.x_size // 2, ui.y_size - 120),
+                            t.t("Tip: Press any key to cancel the download and return to the main menu"),
+                            font=22, anchor="mm", color=ui.cfg.COLOR_SECONDARY)
                     ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
                     ui.paint()
             except Exception as e:
                 LOGGER.error("Error updating progress: %s", e)
 
-        LOGGER.info("Starting OS update process")
+        LOGGER.info("Starting MOD OS update process")
         self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
 
         tmp_space = shutil.disk_usage("/tmp")
         mmc_space = shutil.disk_usage("/mnt/mmc")
         sdcard_space = shutil.disk_usage("/mnt/sdcard")
         if tmp_space == sdcard_space:
-            target_path = "/mnt/mmc/tmp" if mmc_space > tmp_space else "/tmp/tmp"
+            self.cfg.target_path = "/mnt/mmc/tmp" if mmc_space > tmp_space else "/tmp/tmp"
         else:
-            target_path = "/mnt/mmc/tmp" if mmc_space > sdcard_space else "/mnt/sdcard/tmp"
-        LOGGER.info("Starting update from path %s", target_path)
+            self.cfg.target_path = "/mnt/mmc/tmp" if mmc_space > sdcard_space else "/mnt/sdcard/tmp"
+        LOGGER.info("Starting update from path %s", self.cfg.target_path)
 
-        if not os.path.exists(target_path):
-            os.makedirs(target_path, exist_ok=True)
+        if not os.path.exists(self.cfg.target_path):
+            os.makedirs(self.cfg.target_path, exist_ok=True)
 
         file_num = 1
         for item in update_file_list:
             down_url = self.cfg.server_url + item['filename']
-            target_file = os.path.join(target_path, item['filename'])
-            if not self._download_file(down_url, target_file, progress_hook, str(f'({file_num}/{len(update_file_list)})')):
-                LOGGER.error("Error downloading update file")
-                self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
-                shutil.rmtree(target_path)
-                MainApp.exit_cleanup(2, self.ui, self.cfg)
-            file_num+=1
+            target_file = os.path.join(self.cfg.target_path, item['filename'])
+            download_result = self._download_file(down_url, target_file, progress_hook,
+                                                  str(f'({file_num}/{len(update_file_list)})'))
 
-        LOGGER.info("Verifying downloaded files")
+            if download_result == "cancelled":
+                LOGGER.info("System update cancelled by user")
+                self.draw_message_center(t.t("Download Cancelled"), t.t("Returning to main menu..."), "⏹", "info")
+                time.sleep(2)
+                return
+
+            if not download_result:
+                LOGGER.error(f"Error downloading update file: {down_url}")
+                self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
+                shutil.rmtree(self.cfg.target_path)
+                MainApp.exit_cleanup(2, self.ui, self.cfg)
+            file_num += 1
+
+        LOGGER.info(f"Verifying downloaded files: {self.cfg.target_path}")
         self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
         for item in update_file_list:
-            target_file = os.path.join(target_path, item['filename'])
+            target_file = os.path.join(self.cfg.target_path, item['filename'])
             down_md5 = ""
             check_md5 = item['md5']
             if os.path.exists(target_file):
@@ -1397,7 +1458,7 @@ class Updater:
             else:
                 LOGGER.error("MD5 verification failed. Expected: %s, Got: %s", check_md5, down_md5)
                 self.draw_message_center(t.t("Verification Failed"), t.t("File integrity check failed."), "✖", "error")
-                shutil.rmtree(target_path)
+                shutil.rmtree(self.cfg.target_path)
                 MainApp.exit_cleanup(3, self.ui, self.cfg)
 
         LOGGER.info("Starting install process")
@@ -1411,7 +1472,7 @@ class Updater:
         os.makedirs(update_path, exist_ok=True)
 
         for item in update_file_list:
-            source_file = os.path.join(target_path, item['filename'])
+            source_file = os.path.join(self.cfg.target_path, item['filename'])
             target_file = os.path.join(data_path, item['filename'])
             if item['filename'] == 'update.zip':
                 if self.unpack_zip(source_file, mod_path) == 0:
@@ -1420,7 +1481,7 @@ class Updater:
                     LOGGER.error(f"Error unpacking update file: {item['filename']}")
                     self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖",
                                              "error")
-                    shutil.rmtree(target_path)
+                    shutil.rmtree(self.cfg.target_path)
                     MainApp.exit_cleanup(4, self.ui, self.cfg)
             else:
                 try:
@@ -1431,15 +1492,14 @@ class Updater:
                     LOGGER.error(f"Error copy update file: {item['filename']}")
                     self.draw_message_center(t.t("Extraction Error"), t.t("Failed to extract update files."), "✖",
                                              "error")
-                    shutil.rmtree(target_path)
+                    shutil.rmtree(self.cfg.target_path)
                     MainApp.exit_cleanup(4, self.ui, self.cfg)
 
         self.draw_message_center(t.t("System Update"), t.t("Ready, start upgrading..."), "✔", "success")
         time.sleep(3)
         autostart = True
-        shutil.rmtree(target_path)
+        shutil.rmtree(self.cfg.target_path)
         MainApp.reboot(self.ui, self.cfg, autostart)
-
 
     def start_append(self, update_url, md5) -> None:
         ui = self.ui
@@ -1451,8 +1511,8 @@ class Updater:
                 if total_size > 0:
                     percent = min(100, downloaded * 100 // total_size)
                     label_top = t.t("Downloading Update Files...") + num_file
-                    if total_size >= 1024*1024:
-                        unit_num = 1024*1024
+                    if total_size >= 1024 * 1024:
+                        unit_num = 1024 * 1024
                         unit = "MB"
                     else:
                         unit_num = 1024
@@ -1461,6 +1521,9 @@ class Updater:
                     label_bottom = f"{(downloaded / unit_num):.1f}{unit} / {(total_size / unit_num):.2f}{unit} | {speed_display}"
                     ui.clear()
                     ui.info_header(t.t("System Update"), t.t("Downloading update package"))
+                    ui.text((ui.x_size // 2, ui.y_size - 120),
+                            t.t("Tip: Press any key to cancel the download and return to the main menu"),
+                            font=22, anchor="mm", color=ui.cfg.COLOR_SECONDARY)
                     ui.progress_bar(ui.y_size // 2 + 20, percent, label_top=label_top, label_bottom=label_bottom)
                     ui.paint()
             except Exception as e:
@@ -1469,12 +1532,20 @@ class Updater:
         LOGGER.info("Starting OS append update process")
         self.draw_message_center(t.t("Downloading"), t.t("Fetching verification data..."), "㊙", "info")
 
-        if not self._download_file(update_url, self.cfg.tmp_update, progress_hook, '(1/1)'):
-            LOGGER.error("Error downloading update file")
+        download_result = self._download_file(update_url, self.cfg.tmp_update, progress_hook, '(1/1)')
+
+        if download_result == "cancelled":
+            LOGGER.info("Append update cancelled by user")
+            self.draw_message_center(t.t("Download Cancelled"), t.t("Returning to main menu..."), "⏹", "info")
+            time.sleep(2)
+            return
+
+        if not download_result:
+            LOGGER.error(f"Error downloading update file: {update_url}")
             self.draw_message_center(t.t("Download Error"), t.t("Failed to download update file."), "✖", "error")
             MainApp.exit_cleanup(2, self.ui, self.cfg)
 
-        LOGGER.info("Verifying downloaded files")
+        LOGGER.info(f"Verifying downloaded files: {self.cfg.tmp_update}")
         self.draw_message_center(t.t("Verifying"), t.t("Checking file integrity..."), "✪", "info")
 
         down_md5 = ""
@@ -1598,17 +1669,19 @@ class MainApp:
     def exit_cleanup(code: int, ui: UIRenderer, cfg: Config) -> None:
         LOGGER.info("Exiting with code %s", code)
         try:
-            for p in (cfg.tmp_info, cfg.tmp_update):
-                if os.path.exists(p):
+            for p in (cfg.tmp_info, cfg.tmp_update, cfg.target_path):
+                if os.path.isfile(p):
                     os.remove(p)
-            ui.draw_end()
+                elif os.path.isdir(p):
+                    shutil.rmtree(p)
         except Exception as e:
             LOGGER.error("Error during exit cleanup: %s", e)
         finally:
+            ui.draw_end()
             sys.exit(code)
 
     @staticmethod
-    def reboot(ui: UIRenderer, cfg: Config, auto = False) -> None:
+    def reboot(ui: UIRenderer, cfg: Config, auto=False) -> None:
         LOGGER.info("Rebooting system")
         try:
             for p in (cfg.tmp_info, cfg.tmp_update, "/mnt/mod/update.dep"):
@@ -1665,11 +1738,6 @@ fi
                 self.t.t("Please check your network settings"),
                 "✈", "error"
             )
-            self.updater.draw_message_center(
-                self.t.t("Current Version"),
-                cur_ver,
-                "☯", "error"
-            )
             MainApp.exit_cleanup(1, self.ui, self.cfg)
 
         self.updater.draw_message_center(
@@ -1682,13 +1750,13 @@ fi
         update_file_list = []
 
         self.updater.update_info_dict = self.updater.fetch_remote_info()
-        LOGGER.info(self.updater.update_info_dict)
+        # LOGGER.info(self.updater.update_info_dict)
 
         if self.updater.update_info_dict.get('app'):
             app_ver = self.updater.update_info_dict.get('app').get('version', 'Unknown')
             app_update_url = self.cfg.server_url + self.updater.update_info_dict.get('app').get('filename')
             app_md5 = self.updater.update_info_dict.get('app').get('md5')
-            LOGGER.info(f"app: v{app_ver} | {app_update_url} | {app_md5}")
+            LOGGER.info(f"app: v{app_ver}")
 
         if self.updater.update_info_dict.get('update'):
             update_file_dict = self.updater.update_info_dict.get('update')
@@ -1698,14 +1766,13 @@ fi
                 update_file_list = update_file_dict.get('default') + update_file_dict.get('RG35xxSP')
 
             update_ver = update_file_dict.get('version', 'Unknown')
-            LOGGER.info(f'update: v{update_ver} | {update_file_list}' )
+            LOGGER.info(f'update: v{update_ver}')
 
         if self.updater.update_info_dict.get('data'):
             data_ver = self.updater.update_info_dict.get('data').get('version', 'Unknown')
             data_update_url = self.cfg.server_url + self.updater.update_info_dict.get('data').get('filename')
             data_md5 = self.updater.update_info_dict.get('data').get('md5')
-            LOGGER.info(f"data: v{data_ver} | {data_update_url} | {data_md5}")
-
+            LOGGER.info(f"data: v{data_ver}")
 
         update_info = self.updater.update_info_dict.get('update_info', 'Unknown')
 
@@ -1717,9 +1784,9 @@ fi
 
         os_cur_ver = self.updater.read_current_os_version()
         if (
-            cur_ver != "Unknown" and update_ver != "Unknown" and cur_ver < base_ver and bool(update_file_list)
+                cur_ver != "Unknown" and update_ver != "Unknown" and cur_ver < base_ver and bool(update_file_list)
         ) or (
-            cur_ver == "Unknown" and os_cur_ver >= "20250211" and update_ver != "Unknown" and bool(update_file_list)
+                cur_ver == "Unknown" and os_cur_ver >= "20250211" and update_ver != "Unknown" and bool(update_file_list)
         ):
             update_active = True
             new_ver = update_ver
@@ -1728,7 +1795,7 @@ fi
             append_active = True
             new_ver = data_ver
         else:
-            new_ver = "Unknown"
+            new_ver = data_ver
         self.skip_first_input = False
 
         while True:
