@@ -1,8 +1,8 @@
 #!/bin/bash
 
+version="1.1.2"
 progdir="$(cd $(dirname "$0") || exit; pwd)"
 program="${progdir}/upgrade/upgrade.py"
-log_file="${progdir}/upgrade/update.log"
 
 SCRIPT_NAME="$0"
 NEW_FILE="$progdir/upgrade/update.sh"
@@ -27,7 +27,7 @@ do
         tar -xf "$APP_FILE" -C "$progdir/"
         [ -f "$APP_FILE" ] && rm -rf "$APP_FILE"
     else
-        $program > "$log_file" 2>&1
+        $program
         if [ $? -ne 36 ]; then
             break
         fi
