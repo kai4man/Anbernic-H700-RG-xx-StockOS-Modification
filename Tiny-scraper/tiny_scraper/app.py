@@ -196,10 +196,12 @@ def load_roms_menu() -> None:
             imgs_folder.mkdir(parents=True, exist_ok=True)
         rom.set_crc(scraper.get_crc32_from_file(rom_path))
         screenshot = scraper.scrape_screenshot(
-            game_name=rom.name, crc=rom.crc, system_id=system_id
+            game_name=rom.name, crc=rom.crc, system_id=system_id, system_name=selected_system
         )
         if screenshot:
-            img_path: Path = imgs_folder / f"{rom.name}.png"
+            # For PORTS, we need to remove the .sh extension for the image name
+            image_name = rom.name[:-3] if selected_system == "PORTS" and rom.name.endswith(".sh") else rom.name
+            img_path = imgs_folder / f"{image_name}.png"
             save_screenshot(img_path, screenshot)
             gr.draw_log(
                 f"{translator.translate('Scraping completed')}", fill=gr.colorBlue, outline=gr.colorBlueD1
@@ -229,10 +231,12 @@ def load_roms_menu() -> None:
                     imgs_folder.mkdir(parents=True, exist_ok=True)
                 rom.set_crc(scraper.get_crc32_from_file(rom_path))
                 screenshot: Optional[bytes] = scraper.scrape_screenshot(
-                    game_name=rom.name, crc=rom.crc, system_id=system_id
+                    game_name=rom.name, crc=rom.crc, system_id=system_id, system_name=selected_system
                 )
                 if screenshot:
-                    img_path: Path = imgs_folder / f"{rom.name}.png"
+                    # For PORTS, we need to remove the .sh extension for the image name
+                    image_name = rom.name[:-3] if selected_system == "PORTS" and rom.name.endswith(".sh") else rom.name
+                    img_path = imgs_folder / f"{image_name}.png"
                     save_screenshot(img_path, screenshot)
                     print(f"Done scraping {rom.name}. Saved file to {img_path}")
                     success += 1
