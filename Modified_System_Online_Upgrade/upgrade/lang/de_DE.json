@@ -50,7 +50,17 @@
     "Verifying": "Wird überprüft",
     "files": "Dateien",
     "Previous": "Zurück",
+    "Show Log": "Log",
+    "Tip: Press any key to cancel the download and return to the main menu": "Hinweis: Drücken Sie eine beliebige Taste, um den Download\n abzubrechen und zum Hauptmenü zurückzukehren",
+    "Download Cancelled": "Download abgebrochen",
+    "Returning to main menu...": "Kehre zum Hauptmenü zurück...",
     "Next": "Weiter",
     "OS date": "Betriebssystemdatum",
-    "more lines": "weitere Zeilen"
+    "Professional Edition - Starting...": "Professional Edition - Startet...",
+    "Initializing system...": "System wird initialisiert...",
+    "Connecting to update servers": "Verbinde mit Update-Servern",
+    "Please rerun the application": "Bitte starten Sie die Anwendung neu",
+    "Professional Edition - Enhanced UI": "Professional Edition - Verbesserte Benutzeroberfläche",
+    "Tip: Press A to start update • Y for info • B to exit": "Hinweis: A für Update • Y für Info • B zum Beenden",
+    "Tip: Y for update info • B to exit": "Hinweis: Y für Update-Info • B zum Beenden"
 }

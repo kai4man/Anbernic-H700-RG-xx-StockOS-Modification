@@ -50,7 +50,17 @@
     "Verifying": "검증 중",
     "files": "파일",
     "Previous": "이전",
+    "Show Log": "로그 표시",
+    "Tip: Press any key to cancel the download and return to the main menu": "힌트: 아무 키나 누르면 다운로드가\n 취소되고 메인 메뉴로 돌아갑니다",
+    "Download Cancelled": "다운로드가 취소됨",
+    "Returning to main menu...": "메인 메뉴로 돌아가는 중...",
     "Next": "다음",
     "OS date": "OS 날짜",
-    "more lines": "더 많은 줄"
+    "Professional Edition - Starting...": "프로페셔널 에디션 - 시작 중...",
+    "Initializing system...": "시스템 초기화 중...",
+    "Connecting to update servers": "업데이트 서버에 연결 중",
+    "Please rerun the application": "애플리케이션을 다시 실행해 주세요",
+    "Professional Edition - Enhanced UI": "프로페셔널 에디션 - 향상된 UI",
+    "Tip: Press A to start update • Y for info • B to exit": "힌트: A로 업데이트 시작 • Y로 정보 확인 • B로 종료",
+    "Tip: Y for update info • B to exit": "힌트: Y로 업데이트 정보 확인 • B로 종료"
 }

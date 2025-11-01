@@ -50,7 +50,17 @@
     "Verifying": "検証中",
     "files": "ファイル",
     "Previous": "前へ",
+    "Show Log": "ログを表示",
+    "Tip: Press any key to cancel the download and return to the main menu": "ヒント：いずれかのキーを押すとダウン\nロードをキャンセルしてメインメニューに戻ります",
+    "Download Cancelled": "ダウンロードがキャンセルされました",
+    "Returning to main menu...": "メインメニューに戻ります...",
     "Next": "次へ",
     "OS date": "OS日付",
-    "more lines": "さらに表示"
+    "Professional Edition - Starting...": "プロフェッショナル版 - 起動中...",
+    "Initializing system...": "システムを初期化中...",
+    "Connecting to update servers": "更新サーバーに接続中",
+    "Please rerun the application": "アプリケーションを再起動してください",
+    "Professional Edition - Enhanced UI": "プロフェッショナル版 - 強化されたUI",
+    "Tip: Press A to start update • Y for info • B to exit": "ヒント：Aで更新開始 • Yで情報表示 • Bで終了",
+    "Tip: Y for update info • B to exit": "ヒント：Yで更新情報を表示 • Bで終了"
 }

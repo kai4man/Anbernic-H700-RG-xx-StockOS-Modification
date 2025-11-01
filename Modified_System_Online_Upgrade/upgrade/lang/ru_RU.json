@@ -50,7 +50,17 @@
     "Verifying": "Проверка",
     "files": "файлы",
     "Previous": "Назад",
+    "Show Log": "Журнал",
+    "Tip: Press any key to cancel the download and return to the main menu": "Подсказка: Нажмите любую клавишу для\n отмены загрузки и возврата в главное меню",
+    "Download Cancelled": "Загрузка отменена",
+    "Returning to main menu...": "Возврат в главное меню...",
     "Next": "Вперёд",
     "OS date": "Дата ОС",
-    "more lines": "больше строк"
+    "Professional Edition - Starting...": "Профессиональная версия - Запуск...",
+    "Initializing system...": "Инициализация системы...",
+    "Connecting to update servers": "Подключение к серверам обновления",
+    "Please rerun the application": "Пожалуйста, перезапустите приложение",
+    "Professional Edition - Enhanced UI": "Профессиональная версия - Улучшенный интерфейс",
+    "Tip: Press A to start update • Y for info • B to exit": "Подсказка: A - обновить • Y - информация • B - выход",
+    "Tip: Y for update info • B to exit": "Подсказка: Y - информация об обновлении • B - выход"
 }

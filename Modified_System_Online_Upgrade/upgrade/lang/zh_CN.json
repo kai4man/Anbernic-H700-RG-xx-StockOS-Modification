@@ -50,7 +50,17 @@
     "Verifying": "验证中",
     "files": "个文件",
     "Previous": "上一页",
+    "Show Log": "显示日志",
+    "Tip: Press any key to cancel the download and return to the main menu": "提示：按任意键可取消下载并返回主菜单",
+    "Download Cancelled": "下载已取消",
+    "Returning to main menu...": "正在返回主菜单...",
     "Next": "下一页",
     "OS date": "操作系统日期",
-    "more lines": "更多行"
+    "Professional Edition - Starting...": "专业版 - 启动中...",
+    "Initializing system...": "系统初始化中...",
+    "Connecting to update servers": "正在连接更新服务器",
+    "Please rerun the application": "请重新运行应用程序",
+    "Professional Edition - Enhanced UI": "专业版 - 增强用户界面",
+    "Tip: Press A to start update • Y for info • B to exit": "提示：按 A 开始更新 • 按 Y 查看信息 • 按 B 退出",
+    "Tip: Y for update info • B to exit": "提示：按 Y 查看更新信息 • 按 B 退出"
 }
